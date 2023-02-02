@@ -89,7 +89,6 @@ class PADBoard extends HTMLElement{
     for(let leftNeedle=0;leftNeedle<size;leftNeedle+=1){
       for(let topNeedle=0;topNeedle<size-1;topNeedle+=1){
         if((leftNeedle+topNeedle)%2){
-          console.log(topNeedle, leftNeedle)
           ctx.fillRect(leftNeedle*this.#tileSize, topNeedle*this.#tileSize, this.#tileSize, this.#tileSize);
         }
       }
