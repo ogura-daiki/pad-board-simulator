@@ -51,7 +51,7 @@ class PADBoard extends HTMLElement {
   set size(size) {
     this.#canvas.width = size * this.#tileSize;
     this.#canvas.height = (size - 1) * this.#tileSize;
-    const board = [...Array(size - 1)].map(() => [...Array(size)].map(() => Math.floor(Math.random() * 10)));
+    const board = [...Array(size - 1)].map(() => [...Array(size)].map(() => Math.floor(Math.random() * 6)));
     this.#states.updateStates({
       size,
       board
@@ -81,9 +81,31 @@ class PADBoard extends HTMLElement {
     })
   }
 
+  #dropColor = [
+    "rgb(150,30,0)",
+    "rgb(50,80,150)",
+    "rgb(30,120,30)",
+    "rgb(170,170,80)",
+    "rgb(155,0,255)",
+    "rgb(230,150,230)",
+    "rgb(100,0,200)",
+    "rgb(100,50,120)",
+    "rgb(50,50,100)",
+    "rgb(50,50,50)",
+  ];
+  #drawDrop(ctx) {
+    this.#loopTile(({top, left})=>{
+      ctx.beginPath();
+      ctx.fillStyle = this.#dropColor[this.#states.board[top][left]];
+      ctx.arc( (left+0.5) * this.#tileSize, (top+0.5) * this.#tileSize, this.#tileSize/2, 0 * Math.PI / 180, 360 * Math.PI / 180, false ) ;
+      ctx.fill();
+    })
+  }
+
   render() {
     const ctx = this.#canvas.getContext("2d");
     this.#drawBG(ctx);
+    this.#drawDrop(ctx);
   }
 }
 customElements.define("pad-board", PADBoard);
