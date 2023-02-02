@@ -1,4 +1,34 @@
 
+const States = (init, callback)=>{
+  const keys = new Set(Object.keys(init));
+  const values = new Map(Object.entries(init).map(([name, o])=>[name, o.value]));
+  const defaultChecker = (oldVal, newVal) => oldVal !== newVal;
+  return new Proxy(Object.create(null), {
+    set(target, name, newValue){
+      if(!keys.has(name)) return false;
+
+      let updated = false;
+      const oldValue = values.get(name);
+      const hasChanged = init[name]?.hasChanged ?? defaultChecker;
+      if(!values.has()){
+        updated = true;
+      }
+      else{
+        updated = hasChanged(oldValue, newValue);
+      }
+      if(updated){
+        values.set(name, newValue);
+        callback();
+      }
+      return true;
+    },
+    get(target, name, receiver){
+      if(!keys.has(name)) return undefined;
+      return values.get(name);
+    }
+  })
+}
+
 class PADBoard extends HTMLElement{
 
   static get style(){
@@ -17,6 +47,7 @@ class PADBoard extends HTMLElement{
   }
 
   #canvas;
+  #states;
   #tileSize=128;
   constructor(){
     super();
@@ -26,10 +57,15 @@ class PADBoard extends HTMLElement{
       <canvas id="canvas"></canvas>
     `;
 
+    this.#states = States({
+      size:{
+        value:6,
+      },
+    }, ()=> this.render());
+
     this.#canvas = this.shadowRoot.querySelector("#canvas");
 
     this.size = 6;
-    this.render();
   }
 
   #start;
@@ -37,22 +73,21 @@ class PADBoard extends HTMLElement{
     this.#start = board;
   }
 
-  #long;
   set size(long){
-    this.#long = long;
     this.#canvas.width = long*this.#tileSize;
     this.#canvas.height = (long-1)*this.#tileSize;
-    this.render();
+    this.#states.size = long;
   }
 
   #bgColor=['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
   #drawBG(ctx){
+    const size = this.#states.size;
     ctx.fillStyle = this.#bgColor[0];
-    ctx.fillRect(0, 0, this.#long*this.#tileSize, this.#long*this.#tileSize);
+    ctx.fillRect(0, 0, size*this.#tileSize, size*this.#tileSize);
 
     ctx.fillStyle = this.#bgColor[1];
-    for(let leftNeedle=0;leftNeedle<this.#long;leftNeedle+=1){
-      for(let topNeedle=0;topNeedle<this.#long-1;topNeedle+=1){
+    for(let leftNeedle=0;leftNeedle<size;leftNeedle+=1){
+      for(let topNeedle=0;topNeedle<size-1;topNeedle+=1){
         if((leftNeedle+topNeedle)%2){
           console.log(topNeedle, leftNeedle)
           ctx.fillRect(leftNeedle*this.#tileSize, topNeedle*this.#tileSize, this.#tileSize, this.#tileSize);
