@@ -1,4 +1,5 @@
 import { css, html, LitElement, styleMap } from "./src/js/Lit.js";
+import "./PadBoard.js";
 
 class AspectContainer extends LitElement {
   static get styles(){
@@ -107,7 +108,7 @@ class App extends LitElement{
   constructor(){
     super();
     this.ratio = 1/2;
-    this.boardSize = 5/4;
+    this.boardSize = 6;
   }
   render(){
     return html`
@@ -115,14 +116,14 @@ class App extends LitElement{
       <div id=screen style="width:100%;height:100%;display:grid;grid-template-rows:1fr 0fr">
         <div style="display:flex;flex-flow:column;overflow:hidden;">
           <div style="flex-grow:1;flex-basis:0px; overflow-y:scroll;display:flex;flex-flow:column;">
-            ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long/(long-1)}>${long}×${long-1}</button>`)}
+            ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
           </div>
           <div id=menu>
             ${menuList.map((label)=>html`<button>${label}</button>`)}
           </div>
         </div>
-        <aspect-container .ratio=${this.boardSize} target="height" id=board>
-          盤面
+        <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} target="height" id=board>
+          <pad-board .size=${this.boardSize}></pad-board>
         </aspect-container>
       </div>
     </aspect-container>
