@@ -1,8 +1,10 @@
 
-const States = (init, callback)=>{
+const States = (init)=>{
   const keys = new Set(Object.keys(init));
   const values = new Map(Object.entries(init).map(([name, o])=>[name, o.value]));
   const defaultChecker = (oldVal, newVal) => oldVal !== newVal;
+
+  let onUpdatedCallback = ()=>{};
 
   const update = (updates) => {
     let someValuesUpdated = false;
@@ -27,7 +29,7 @@ const States = (init, callback)=>{
   return new Proxy(Object.create(null), {
     set(target, name, newValue){
       if(update({[name]:newValue})){
-        callback();
+        onUpdatedCallback();
       }
       return true;
     },
@@ -36,8 +38,13 @@ const States = (init, callback)=>{
       if(name === "updateStates"){
         return updates => {
           if(update(updates)){
-            callback();
+            onUpdatedCallback();
           }
+        }
+      }
+      if(name == "setCallback"){
+        return fn => {
+          onUpdatedCallback = fn;
         }
       }
       if(!keys.has(name)) return undefined;
@@ -78,7 +85,8 @@ class PADBoard extends HTMLElement{
       size:{
         value:6,
       },
-    }, ()=> this.render());
+    });
+    this.#states.setCallback(()=>this.render());
 
     this.#canvas = this.shadowRoot.querySelector("#canvas");
 
