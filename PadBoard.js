@@ -1,5 +1,19 @@
 import ReactiveStates from "./ReactiveStates.js";
 
+const dropNames = [
+  "fire", "water", "wood", "light", "dark", "heal",
+  "poison", "deadlypoison", "trash", "bomb",
+];
+
+const loadImage = (filePath) => new Promise((res) => {
+  const img = new Image();
+  img.addEventListener("load", e=>{
+    res(img);
+  });
+  img.src = filePath;
+});
+const dropImages = await Promise.allSettled(dropNames.map(dropName => loadImage(`./src/images/drops/${dropName}.png`))).then(results=>results.map(r=>r.value));
+
 class PADBoard extends HTMLElement {
 
   static get style() {
@@ -33,7 +47,7 @@ class PADBoard extends HTMLElement {
         value: 6,
       },
       board: {
-        value: [...Array(5)].map(() => [...Array(6)].map(() => Math.floor(Math.random() * 10))),
+        value: [...Array(5)].map(() => [...Array(6)].map(() => Math.floor(Math.random() * 6))),
       }
     });
     this.#states.setCallback(() => this.render());
@@ -81,24 +95,10 @@ class PADBoard extends HTMLElement {
     })
   }
 
-  #dropColor = [
-    "rgb(150,30,0)",
-    "rgb(50,80,150)",
-    "rgb(30,120,30)",
-    "rgb(170,170,80)",
-    "rgb(155,0,255)",
-    "rgb(230,150,230)",
-    "rgb(100,0,200)",
-    "rgb(100,50,120)",
-    "rgb(50,50,100)",
-    "rgb(50,50,50)",
-  ];
   #drawDrop(ctx) {
     this.#loopTile(({top, left})=>{
-      ctx.beginPath();
-      ctx.fillStyle = this.#dropColor[this.#states.board[top][left]];
-      ctx.arc( (left+0.5) * this.#tileSize, (top+0.5) * this.#tileSize, this.#tileSize/2, 0 * Math.PI / 180, 360 * Math.PI / 180, false ) ;
-      ctx.fill();
+      const drop = this.#states.board[top][left];
+      ctx.drawImage(dropImages[drop], left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
     })
   }
 
