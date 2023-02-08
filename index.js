@@ -65,7 +65,10 @@ const style = css`
   overflow:hidden;
 }
 #container{
-  background:rgb(32,24,24);
+  background-image:
+    linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.8)),
+    url("./src/images/bg.png")
+    ;
 }
 #screen{
   background:black;
