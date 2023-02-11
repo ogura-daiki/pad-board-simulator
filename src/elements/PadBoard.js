@@ -70,21 +70,25 @@ class PADBoard extends HTMLElement {
         board[p2.y][p2.x] = drop;
       }
 
+      const factorX = pos.x > to.x?-1:1;
+      const factorY = pos.y > to.y?-1:1;
+
       while(true){
         let hasDiff = false;
         if(pos.x !== to.x){
-          pos.x += pos.x > to.x?-1:1;
+          pos.x += factorX
           hasDiff = true;
         }
         if(pos.y !== to.y){
-          pos.y += pos.y > to.y?-1:1;
+          pos.y += factorY;
           hasDiff = true;
         }
         if(!hasDiff){
           break;
         }
         change(before, pos);
-        Object.assign(before, pos);
+        before.x = pos.x;
+        before.y = pos.y;
       }
     }
 
@@ -147,15 +151,19 @@ class PADBoard extends HTMLElement {
       }
       this.#moveGhost();
     });
+
+    new ResizeObserver(()=>{
+      this.#rect = this.#canvas.getBoundingClientRect();
+    }).observe(this);
   }
 
   #raw={empty:true};
-
+  #rect;
   #getPointerTile(e){
     if(e instanceof TouchEvent){
       e = e.touches[0];
     }
-    const rect = this.#canvas.getBoundingClientRect();
+    const rect = this.#rect;
     this.#raw = {
       x: e.pageX-rect.left,
       y: e.pageY-rect.top,
@@ -230,12 +238,19 @@ class PADBoard extends HTMLElement {
     }
   }
 
+  #timerId;
   #moveGhost(){
-    //少し大きく表示
-    const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
-    const offset = displayTileSize/2;
-    this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
     this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
+    if(!this.#states.pointerDown){
+      return;
+    }
+    clearTimeout(this.#timerId);
+    this.#timerId = requestAnimationFrame(()=>{
+      //少し大きく表示
+      const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
+      const offset = displayTileSize/2;
+      this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
+    });
   }
 
   render() {
