@@ -58,6 +58,35 @@ class PADBoard extends HTMLElement {
       <img id="ghost" draggable=false>
     `;
 
+    const move = (board, from, to) => {
+      
+      const pos = {...from};
+      const before = {...pos};
+
+      const change = (p1, p2) => {
+        const drop = board[p1.y][p1.x];
+        board[p1.y][p1.x] = board[p2.y][p2.x];
+        board[p2.y][p2.x] = drop;
+      }
+
+      while(true){
+        let hasDiff = false;
+        if(pos.x !== to.x){
+          pos.x += pos.x > to.x?-1:1;
+          hasDiff = true;
+        }
+        if(pos.y !== to.y){
+          pos.y += pos.y > to.y?-1:1;
+          hasDiff = true;
+        }
+        if(!hasDiff){
+          break;
+        }
+        change(before, pos);
+        Object.assign(before, pos);
+      }
+    }
+
     this.#states = ReactiveStates({
       size: {
         value: 6,
@@ -73,9 +102,7 @@ class PADBoard extends HTMLElement {
         hasChanged:(nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(!ov.empty && !nv.empty && hasChange){
-            const drop = this.#states.board[nv.y][nv.x];
-            this.#states.board[nv.y][nv.x] = this.#states.board[ov.y][ov.x];
-            this.#states.board[ov.y][ov.x] = drop;
+            move(this.#states.board, ov, nv);
           }
           return hasChange;
         },
@@ -130,7 +157,6 @@ class PADBoard extends HTMLElement {
       x: clamp(0, e.pageX-rect.left, this.#canvas.offsetWidth),
       y: clamp(0, e.pageY-rect.top, this.#canvas.offsetHeight),
     };
-    console.log(this.#raw)
     const x = clamp(0, Math.floor(this.#raw.x / this.#canvas.offsetWidth * this.size), this.size-1);
     const y = clamp(0, Math.floor(this.#raw.y / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
     return {x,y};
