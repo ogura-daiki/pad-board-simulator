@@ -19,14 +19,14 @@ class AspectContainer extends LitElement {
   static get properties(){
     return {
       ratio:{type:Number},
-      target:{type:String},
+      fit:{type:String},
     }
   }
 
   constructor(){
     super();
     this.ratio = 1/2;
-    this.target = "width";
+    this.fit = "height";
 
     let timerId;
     new ResizeObserver(()=>{
@@ -37,15 +37,22 @@ class AspectContainer extends LitElement {
     }).observe(this);
   }
 
+  #rotateOrientation(orientation){
+    return {
+      width:"height",
+      height:"width",
+    }[orientation];
+  }
+
   render(){
     const style = {
       aspectRatio:this.ratio,
     };
-    style[this.target] = "100%";
-    if(this.target === "width"){
+    style[this.#rotateOrientation(this.fit)] = "100%";
+    if(this.fit === "height"){
       style.maxWidth = this.clientHeight*this.ratio +"px";
     }
-    else if(this.target = "height"){
+    else if(this.fit === "width"){
       style.maxHeight = this.clientWidth/this.ratio +"px";
     }
     return html`
@@ -125,7 +132,7 @@ class App extends LitElement{
             ${menuList.map((label)=>html`<button>${label}</button>`)}
           </div>
         </div>
-        <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} target="height" id=board>
+        <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} fit="width" id=board>
           <pad-board .size=${this.boardSize}></pad-board>
         </aspect-container>
       </div>
