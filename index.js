@@ -215,35 +215,40 @@ class App extends LitElement{
         `)}
       </div>
     `)}
-    ${this.#option("消せないドロップ", html`
-      <div class=list
-        @change=${e=>{
-          const padBoard = this.renderRoot.querySelector("#padBoard");
-          const dropId = +e.target.value;
-          if(e.target.checked){
-            padBoard.disableDrop(dropId);
-          }
-          else {
-            padBoard.enableDrop(dropId);
-          }
-        }}
-      >
-        ${normalDrops.map(({id, image}, index)=>html`
-          <label>
-            <input
-              type=checkbox
-              name=disableDrop
-              value=${id}
-              style="display:none"
-            >
-            <div class="palette disableDrop" src=${image}>
-              <img src=${image}>
-              <div class="displayDisable"></div>
-            </img>
-          </label>
-        `)}
-      </div>
-    `)}
+    ${this.#option("消せないドロップ", (()=>{
+      const padBoard = this.renderRoot.querySelector("#padBoard");
+      const isDisableDrop = id => padBoard?padBoard.isDisableDrop(id):false;
+      return html`
+        <div class=list
+          @change=${e=>{
+            const padBoard = this.renderRoot.querySelector("#padBoard");
+            const dropId = +e.target.value;
+            if(e.target.checked){
+              padBoard.disableDrop(dropId);
+            }
+            else {
+              padBoard.enableDrop(dropId);
+            }
+          }}
+        >
+          ${normalDrops.map(({id, image}, index)=>html`
+            <label>
+              <input
+                type=checkbox
+                name=disableDrop
+                value=${id}
+                ?checked=${isDisableDrop(id)}
+                style="display:none"
+              >
+              <div class="palette disableDrop" src=${image}>
+                <img src=${image}>
+                <div class="displayDisable"></div>
+              </img>
+            </label>
+          `)}
+        </div>
+      `
+    })())}
     `;
   }
 

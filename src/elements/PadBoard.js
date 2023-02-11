@@ -177,6 +177,9 @@ class PADBoard extends HTMLElement {
     this.#states.disables.add(id);
     this.render();
   }
+  isDisableDrop(id){
+    return this.#states.disables.has(id);
+  }
 
   #raw={empty:true};
   #rect;
