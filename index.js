@@ -1,7 +1,7 @@
-import { css, html, LitElement, styleMap } from "./src/elements/Lit.js";
+import { css, html, LitElement, styleMap, unsafeCSS } from "./src/elements/Lit.js";
 import "./src/elements/AspectContainer.js";
 import "./src/elements/PadBoard.js";
-import { modifierList } from "./src/libs/Drops.js";
+import { dropEffectImages, modifierList, normalDrops } from "./src/libs/Drops.js";
 
 const style = css`
 :host{
@@ -80,8 +80,24 @@ const style = css`
     ;
   border-radius:8px;
 }
-#menuContents>.option input[type=radio]:checked+.palette{
+#menuContents>.option input:checked+.palette{
   border-color:lightgray;
+}
+
+#menuContents>.option .palette.disableDrop{
+  position:relative;
+}
+#menuContents>.option .palette.disableDrop>*{
+  position:absolute;
+  top:0px;
+  left:0px;
+  display:block;
+  width:100%;
+  height:100%;
+  background-size: contain;
+}
+#menuContents>.option input[type=checkbox]:checked+.palette.disableDrop .displayDisable{
+  background-image:url(${unsafeCSS(dropEffectImages[3].src)});
 }
 
 
@@ -199,6 +215,35 @@ class App extends LitElement{
         `)}
       </div>
     `)}
+    ${this.#option("消せないドロップ", html`
+      <div class=list
+        @change=${e=>{
+          const padBoard = this.renderRoot.querySelector("#padBoard");
+          const dropId = +e.target.value;
+          if(e.target.checked){
+            padBoard.disableDrop(dropId);
+          }
+          else {
+            padBoard.enableDrop(dropId);
+          }
+        }}
+      >
+        ${normalDrops.map(({id, image}, index)=>html`
+          <label>
+            <input
+              type=checkbox
+              name=disableDrop
+              value=${id}
+              style="display:none"
+            >
+            <div class="palette disableDrop" src=${image}>
+              <img src=${image}>
+              <div class="displayDisable"></div>
+            </img>
+          </label>
+        `)}
+      </div>
+    `)}
     `;
   }
 
@@ -216,6 +261,7 @@ class App extends LitElement{
         </div>
         <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} fit="width" id=board>
           <pad-board
+            id="padBoard"
             .size=${this.boardSize}
             .mode=${this.opened}
             @dropPushed=${e=>{

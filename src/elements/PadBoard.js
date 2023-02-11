@@ -112,7 +112,7 @@ class PADBoard extends HTMLElement {
         },
       },
       disables:{
-        value:new Set([1]),
+        value:new Set(),
       }
     });
     this.#states.setCallback(() => this.render());
@@ -178,6 +178,15 @@ class PADBoard extends HTMLElement {
   modifyDrop(pos, func){
     const drop = this.#states.board[pos.y][pos.x];
     func({drop, board:this.#states.board});
+    this.render();
+  }
+
+  enableDrop(id){
+    this.#states.disables.delete(id);
+    this.render();
+  }
+  disableDrop(id){
+    this.#states.disables.add(id);
     this.render();
   }
 

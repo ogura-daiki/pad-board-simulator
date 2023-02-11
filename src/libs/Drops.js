@@ -4,6 +4,7 @@ const dropNames = [
   "fire", "water", "wood", "light", "dark", "heal",
   "poison", "deadlypoison", "trash", "bomb",
 ];
+const normalDrops = dropNames.slice(0,6).map((name,id)=>({id,image:dropFilePathFromName(name)}));
 const dropEffects = ["plus", "minus", "lock", "disable", "combo", "nail"];
 
 
@@ -186,4 +187,4 @@ class Drop {
   }
 }
 
-export { Drop, dropImages, dropEffectImages, modifierList };
+export { Drop, dropImages, dropEffectImages, modifierList, normalDrops };
