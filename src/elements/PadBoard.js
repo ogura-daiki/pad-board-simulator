@@ -73,12 +73,14 @@ class PADBoard extends HTMLElement {
 
     this.size = 6;
 
-    this.#canvas.addEventListener("mousedown", e=>{
-      this.#states.pointerDown = true;
-    });
-    this.#canvas.addEventListener("touchstart", e=>{
-      this.#states.pointerDown = true;
-    });
+    const beginPuzzle = e => {
+      this.#states.updateStates({
+        pointerDown:true,
+        pointerPos:this.#getPointerTile(e),
+      });
+    }
+    this.#canvas.addEventListener("mousedown", beginPuzzle);
+    this.#canvas.addEventListener("touchstart", beginPuzzle);
     this.#canvas.addEventListener("touchmove", e=>{
       e.preventDefault();
     });
@@ -100,9 +102,12 @@ class PADBoard extends HTMLElement {
   }
 
   #getPointerTile(e){
+    if(e instanceof TouchEvent){
+      e = e.touches[0];
+    }
     const rect = this.#canvas.getBoundingClientRect();
     const x = clamp(0, Math.floor((e.pageX-rect.left) / this.#canvas.offsetWidth * this.size), this.size-1);
-    const y = clamp(0, Math.floor((e.offsetY-rect.top) / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
+    const y = clamp(0, Math.floor((e.pageY-rect.top) / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
     return {x,y};
   }
 
@@ -149,9 +154,14 @@ class PADBoard extends HTMLElement {
   }
 
   #drawDrop(ctx) {
+    const pos = this.#states.pointerPos;
     this.#loopTile(({top, left})=>{
       const drop = this.#states.board[top][left];
+      if(pos.y === top && pos.x === left){
+        ctx.globalAlpha = 0.5;
+      }
       ctx.drawImage(dropImages[drop], left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
+      ctx.globalAlpha = 1;
     })
   }
 
