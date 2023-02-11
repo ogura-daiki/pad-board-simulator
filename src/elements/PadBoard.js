@@ -30,15 +30,6 @@ class PADBoard extends HTMLElement {
       top:0px;
       opacity:0.6;
     }
-    #ghost .layer{
-      display:block;
-      width:100%;
-      height:100%;
-      position:absolute;
-      left:0px;
-      top:0px;
-      background-size: contain;
-    }
     `;
   }
 
@@ -52,10 +43,7 @@ class PADBoard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.style}</style>
       <canvas id="canvas"></canvas>
-      <div id="ghost" draggable=false>
-        <img class="layer _1">
-        <div class="layer _2"></div>
-      </div>
+      <img id="ghost" draggable=false>
     `;
 
     const move = (board, from, to) => {

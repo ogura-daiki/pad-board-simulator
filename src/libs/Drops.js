@@ -215,22 +215,8 @@ class Drop {
   }
 
   createGhost(ghost) {
-    const layer1 = ghost.querySelector(".layer._1");
-    layer1.src = dropImages[this.#id].src;
-
-    const layer2 = ghost.querySelector(".layer._2");
-    let bg = [];
-    if (this.#power !== 0) {
-      bg.push(`url(${dropEffectImages[getPowerEffectIndex(this.#power)].src})`);
-      layer1.style.filter = getBrightness(this.#power);
-    }
-    else {
-      layer1.style.filter = "";
-    }
-    if (this.lock) {
-      bg.push(`url(${dropEffectImages[2].src})`);
-    }
-    layer2.style.backgroundImage = bg.join(",");
+    const image = getCachedDropImage([this.#id, this.#power, this.lock, this.#combo, this.#nail, false]);
+    ghost.src = image.toDataURL();
   }
 }
 
