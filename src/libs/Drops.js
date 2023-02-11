@@ -18,6 +18,21 @@ const loadImages = filePathList => Promise.allSettled(filePathList.map(path => l
 const dropImages = await loadImages(dropNames.map((v, id) => dropFilePathFromId(id)));
 const dropEffectImages = await loadImages(dropEffects.map(p => dropFilePathFromName(p)));
 
+const dropModifier = (imagePath, modifier) => ({image:imagePath, modifier});
+const modifierList = [
+  ...dropNames.map((name, id)=>dropModifier(dropFilePathFromName(name), drop=>drop.id = id)),
+  ...["plus", "minus"].map((name, index)=>dropModifier(dropFilePathFromName(name), drop=>{
+    const power = index*-2+1;
+    if(drop.power !== power){
+      drop.power = power;
+    }
+    else{
+      drop.power = 0;
+    }
+  })),
+  ...["lock", "combo", "nail"].map((name)=>dropModifier(dropFilePathFromName(name), drop=>drop[name] = !drop[name])),
+];
+
 const cacheDropImage = new Map();
 const getCachedDropImage = (vals, draw) => {
   const hash = vals.join(":");
@@ -171,4 +186,4 @@ class Drop {
   }
 }
 
-export { Drop, dropImages, dropEffectImages as powerImages };
+export { Drop, dropImages, dropEffectImages, modifierList };

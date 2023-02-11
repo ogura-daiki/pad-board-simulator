@@ -1,6 +1,7 @@
 import { css, html, LitElement, styleMap } from "./src/elements/Lit.js";
 import "./src/elements/AspectContainer.js";
 import "./src/elements/PadBoard.js";
+import { modifierList } from "./src/libs/Drops.js";
 
 const style = css`
 :host{
@@ -67,6 +68,23 @@ const style = css`
   gap:4px;
 }
 
+#menuContents>.option .palette{
+  display:block;
+  width:64px;
+  height:64px;
+  border:2px solid;
+  border-color:transparent;
+  background-image:
+    linear-gradient(rgba(128,128,128,.6), rgba(128,128,128,.6)),
+    url("./src/images/bg.png")
+    ;
+  border-radius:8px;
+}
+#menuContents>.option input[type=radio]:checked+.palette{
+  border-color:lightgray;
+}
+
+
 #menu{
   border:solid lightgray;
   border-width:4px 0px;
@@ -108,6 +126,7 @@ class App extends LitElement{
     this.ratio = ratioList[0];
     this.boardSize = 6;
     this.opened = menuList[0].name;
+    this.selectedPalette = modifierList[0];
   }
 
   _puzzle(){
@@ -162,6 +181,24 @@ class App extends LitElement{
         changed:e=>this.boardSize = +e.target.value,
       }
     ))}
+    ${this.#option("ドロップパレット", html`
+      <div class=list
+        @changed=${e=>this.selectedPalette = modifierList[e.target.value]}
+      >
+        ${modifierList.map((modifier, index)=>html`
+          <label>
+            <input
+              type=radio
+              name=palette
+              value=${index}
+              ?checked=${modifier === this.selectedPalette}
+              style="display:none"
+            >
+            <img class=palette src=${modifier.image}>
+          </label>
+        `)}
+      </div>
+    `)}
     `;
   }
 
