@@ -1,7 +1,7 @@
 import { Drop, dropImages } from "../libs/Drops.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 
-const clamp = (min, x, max) => Math.max(min, Math.min(x, max));
+const clamp = (min, x, max) => min > x?min:(x < max?x:max);
 
 const newBoard = (long) => [...Array(long-1)].map(() => [...Array(long)].map(() => new Drop(Math.floor(Math.random() * 6))));
 
@@ -43,7 +43,6 @@ class PADBoard extends HTMLElement {
   }
 
   #canvas;
-  #ghostCanvas;
   #ghost;
   #states;
   #tileSize = 128;
@@ -117,7 +116,6 @@ class PADBoard extends HTMLElement {
 
     this.#canvas = this.shadowRoot.querySelector("#canvas");
     this.#ghost = this.shadowRoot.querySelector("#ghost");
-    this.#ghostCanvas = this.shadowRoot.querySelector("#ghostCanvas");
 
     this.size = 6;
 
@@ -238,19 +236,15 @@ class PADBoard extends HTMLElement {
     }
   }
 
-  #timerId;
   #moveGhost(){
     this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
     if(!this.#states.pointerDown){
       return;
     }
-    clearTimeout(this.#timerId);
-    this.#timerId = requestAnimationFrame(()=>{
-      //少し大きく表示
-      const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
-      const offset = displayTileSize/2;
-      this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
-    });
+    //少し大きく表示
+    const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
+    const offset = displayTileSize/2;
+    this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
   }
 
   render() {
