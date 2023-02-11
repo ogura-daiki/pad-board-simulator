@@ -93,8 +93,19 @@ class PADBoard extends HTMLElement {
         value:{empty:true},
         hasChanged:(nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
-          if(!ov.empty && !nv.empty && hasChange){
-            move(this.#states.board, ov, nv);
+          if(!nv.empty && hasChange){
+            if(this.#mode === "palette"){
+              this.dispatchEvent(new CustomEvent(
+                "dropPushed",
+                {
+                  detail:{target:this, pointerPos:nv},
+                  composed:true, bubbles:true
+                }
+              ));
+            }
+            else if(!ov.empty){
+              move(this.#states.board, ov, nv);
+            }
           }
           return hasChange;
         },
@@ -112,22 +123,15 @@ class PADBoard extends HTMLElement {
 
     const beginPuzzle = e => {
       const pointerPos = this.#getPointerTile(e);
-      if(this.#mode === "palette"){
-        this.dispatchEvent(new CustomEvent(
-          "dropPushed",
-          {
-            detail:{target:this, pointerPos},
-            composed:true, bubbles:true
-          }
-        ));
-        return;
-      }
       this.#states.updateStates({
         pointerDown:true,
         pointerPos
       });
       this.#drawGhost();
-      this.#moveGhost();
+      
+      if(this.#mode === "puzzle"){
+        this.#moveGhost();
+      }
     }
     this.#canvas.addEventListener("pointerdown", beginPuzzle);
     //this.#canvas.addEventListener("touchstart", beginPuzzle);
@@ -242,7 +246,7 @@ class PADBoard extends HTMLElement {
   #drawDrop(ctx) {
     const pos = this.#states.pointerPos;
     this.#loopTile(({top, left})=>{
-      const hold = pos.x === left && pos.y === top;
+      const hold = this.#mode === "puzzle" && pos.x === left && pos.y === top;
       this.#states.board[top][left].draw(ctx, {size:this.#tileSize, x:left, y:top, hold, disables:this.#states.disables});
     });
   }
@@ -263,6 +267,9 @@ class PADBoard extends HTMLElement {
   }
 
   #moveGhost(){
+    if(this.#mode === "palette"){
+      return;
+    }
     this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
     if(!this.#states.pointerDown){
       return;
