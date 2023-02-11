@@ -3,13 +3,13 @@ const Updater = (keys, values, hasChanged) => (updates) => {
   let someValuesUpdated = false;
   for (const [name, newValue] of Object.entries(updates)) {
     if (!keys.has(name)) continue;
-    const oldValue = values.get(name);
     let updated = false;
-    if (!values.has()) {
+    if (!values.has(name)) {
       updated = true;
     }
     else {
-      updated = hasChanged(oldValue, newValue);
+      const oldValue = values.get(name);
+      updated = hasChanged(name, newValue, oldValue);
     }
     if (updated) {
       values.set(name, newValue);
@@ -25,7 +25,8 @@ const ReactiveStates = (init) => {
   const values = new Map(Object.entries(init).map(([name, o]) => [name, o.value]));
   const defaultChecker = (oldVal, newVal) => oldVal !== newVal;
 
-  const update = Updater(keys, values, (name, newVal, oldVal) => (init[name].hasChanged ?? defaultChecker)(newValue, oldValue));
+  console.log((name => init[name].hasChanged || defaultChecker)("pointerPos"))
+  const update = Updater(keys, values, (name, newVal, oldVal) => (init[name].hasChanged || defaultChecker)(newVal, oldVal));
 
   let onUpdatedCallback = () => { };
 
@@ -44,6 +45,7 @@ const ReactiveStates = (init) => {
 
   return new Proxy(Object.create(null), {
     set(target, name, newValue) {
+      //console.log(name, newValue, update({ [name]: newValue }));
       if (update({ [name]: newValue })) {
         onUpdatedCallback();
       }
