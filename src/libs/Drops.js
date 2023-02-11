@@ -4,7 +4,7 @@ const dropNames = [
   "fire", "water", "wood", "light", "dark", "heal",
   "poison", "deadlypoison", "trash", "bomb",
 ];
-const dropEffects = ["plus", "minus", "lock"];
+const dropEffects = ["plus", "minus", "lock", "disable"];
 
 
 const loadImage = (filePath) => new Promise((res) => {
@@ -19,8 +19,8 @@ const dropImages = await loadImages(dropNames.map((v, id) => dropFilePathFromId(
 const dropEffectImages = await loadImages(dropEffects.map(p => dropFilePathFromName(p)));
 
 const cacheDropImage = new Map();
-const getCachedDropImage = (id, power, lock, draw) => {
-  const hash = `${id}:${power}:${lock}`;
+const getCachedDropImage = (vals, draw) => {
+  const hash = vals.join(":");
   if(cacheDropImage.has(hash)){
     return cacheDropImage.get(hash);
   }
@@ -56,17 +56,23 @@ const lockDecorator = (ctx, options, draw) => () => {
   draw();
   drawImage(ctx, options, dropEffectImages[2]);
 }
+const disableDecorator = (ctx, options, draw) => () => {
+  draw();
+  drawImage(ctx, options, dropEffectImages[3]);
+}
 
 const getPowerEffectIndex = power => (power - 1) / -2;
 const getBrightness = power => `brightness(${[120, 70][getPowerEffectIndex(power)]}%)`;
 
 const powerDecorator = (ctx, options, power, draw) => () => {
-  ctx.filter = getBrightness(power);
   draw();
-  ctx.filter = "brightness(100%)";
+  drawImage(ctx, options, dropEffectImages[getPowerEffectIndex(power)]);
+}
 
-  const index = getPowerEffectIndex(power);
-  drawImage(ctx, options, dropEffectImages[index]);
+const brightnessDecorator = (ctx, brightness, draw) => ()=>{
+  ctx.filter = `brightness(${brightness}%)`;
+  draw();
+  ctx.filter = `brightness(100%)`;
 }
 
 class Drop {
@@ -78,17 +84,31 @@ class Drop {
 
   draw(ctx, options = {}) {
 
-    const { size, x, y, hold } = options;
+    const { size, x, y, hold, disables } = options;
 
-
-    const dropImage = getCachedDropImage(this.id, this.power, this.lock, ctx=>{
+    const disabled = disables.has(this.id);
+    const vals = [this.id, this.power, this.lock, disabled];
+    const dropImage = getCachedDropImage(vals, ctx=>{
       const opt = {...options, x:0, y:0, size:128};
       const drawDropImage = () => {
         drawImage(ctx, opt, dropImages[this.id]);
       }
 
       let drawDrop = drawDropImage;
-      //ドロップの強化を反映
+      let brightness = 100;
+
+      //強化、弱化によって明暗を変更
+      if(this.power !== 0){
+        brightness *= [1.2, 0.7][getPowerEffectIndex(this.power)];
+      }
+      //消せない場合は暗く
+      if(disabled){
+        brightness *= 0.7;
+      }
+      //ドロップを表示する明るさを反映
+      drawDrop = brightnessDecorator(ctx, brightness, drawDrop);
+      
+      //ドロップの強化・弱化を反映
       if (this.power !== 0) {
         drawDrop = powerDecorator(ctx, opt, this.power, drawDrop);
       }
@@ -96,15 +116,21 @@ class Drop {
       if (this.lock) {
         drawDrop = lockDecorator(ctx, opt, drawDrop);
       }
-      //持っているドロップなら半透明にする
-      if (hold) {
-        drawDrop = alphaDecorator(ctx, 0.5, drawDrop);
+      //消せないドロップのバツマーク
+      if(disabled){
+        drawDrop = disableDecorator(ctx, opt, drawDrop);
       }
 
       drawDrop();
     });
 
-    drawImage(ctx, options, dropImage);
+    let drawDrop = ()=> drawImage(ctx, options, dropImage);
+    //持っているドロップなら半透明にする
+    if (hold) {
+      drawDrop = alphaDecorator(ctx, 0.5, drawDrop);
+    }
+    
+    drawDrop();
   }
 
   createGhost(ghost) {

@@ -110,6 +110,9 @@ class PADBoard extends HTMLElement {
           }
           return hasChange;
         },
+      },
+      disables:{
+        value:new Set([1]),
       }
     });
     this.#states.setCallback(() => this.render());
@@ -217,7 +220,7 @@ class PADBoard extends HTMLElement {
     const pos = this.#states.pointerPos;
     this.#loopTile(({top, left})=>{
       const hold = pos.x === left && pos.y === top;
-      this.#states.board[top][left].draw(ctx, {size:this.#tileSize, x:left, y:top, hold});
+      this.#states.board[top][left].draw(ctx, {size:this.#tileSize, x:left, y:top, hold, disables:this.#states.disables});
     });
   }
 
