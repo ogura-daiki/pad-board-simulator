@@ -70,9 +70,7 @@ class Drop {
 
     const decorateLock = (drawDrop) => ()=>{
       drawDrop();
-      if(this.lock){
-        drawImage(dropEffectImages[2]);
-      }
+      drawImage(dropEffectImages[2]);
     }
 
     const drawDropImage = ()=>{
@@ -81,11 +79,17 @@ class Drop {
 
     let drawDrop = drawDropImage;
     //ドロップの強化を反映
-    drawDrop = decoratePower(drawDrop);
+    if(this.power !== 0){
+      drawDrop = decoratePower(drawDrop);
+    }
     //ドロップをロック
-    drawDrop = decorateLock(drawDrop);
+    if(this.lock){
+      drawDrop = decorateLock(drawDrop);
+    }
     //持っているドロップなら半透明にする
-    drawDrop = decorateAlpha(hold?0.5:1, drawDrop);
+    if(hold){
+      drawDrop = decorateAlpha(0.5, drawDrop);
+    }
     
     drawDrop();
 
