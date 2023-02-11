@@ -47,6 +47,10 @@ class PADBoard extends HTMLElement {
     `;
 
     const move = (board, from, to) => {
+
+      if(from.empty){
+        return;
+      }
       
       const pos = {...from};
       const before = {...pos};
@@ -73,7 +77,18 @@ class PADBoard extends HTMLElement {
         if(!hasDiff){
           break;
         }
-        change(before, pos);
+        if(this.#mode === "puzzle"){
+          change(before, pos);
+        }
+        else{
+          this.dispatchEvent(new CustomEvent(
+            "dropPushed",
+            {
+              detail:{target:this, pointerPos:pos},
+              composed:true, bubbles:true
+            }
+          ));
+        }
         before.x = pos.x;
         before.y = pos.y;
       }
@@ -94,7 +109,7 @@ class PADBoard extends HTMLElement {
         hasChanged:(nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(!nv.empty && hasChange){
-            if(this.#mode === "palette"){
+            if(ov.empty){
               this.dispatchEvent(new CustomEvent(
                 "dropPushed",
                 {
@@ -103,9 +118,7 @@ class PADBoard extends HTMLElement {
                 }
               ));
             }
-            else if(!ov.empty){
-              move(this.#states.board, ov, nv);
-            }
+            move(this.#states.board, ov, nv);
           }
           return hasChange;
         },
