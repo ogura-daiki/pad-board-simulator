@@ -4,7 +4,7 @@ const dropNames = [
   "fire", "water", "wood", "light", "dark", "heal",
   "poison", "deadlypoison", "trash", "bomb",
 ];
-const dropEffects = ["plus", "minus", "lock", "disable"];
+const dropEffects = ["plus", "minus", "lock", "disable", "combo"];
 
 
 const loadImage = (filePath) => new Promise((res) => {
@@ -60,6 +60,10 @@ const disableDecorator = (ctx, options, draw) => () => {
   draw();
   drawImage(ctx, options, dropEffectImages[3]);
 }
+const comboDecorator = (ctx, options, draw) => () => {
+  draw();
+  drawImage(ctx, options, dropEffectImages[4]);
+}
 
 const getPowerEffectIndex = power => (power - 1) / -2;
 const getBrightness = power => `brightness(${[120, 70][getPowerEffectIndex(power)]}%)`;
@@ -76,10 +80,11 @@ const brightnessDecorator = (ctx, brightness, draw) => ()=>{
 }
 
 class Drop {
-  constructor(dropId, { lock = false, power = 0 } = {}) {
+  constructor(dropId, { lock = false, power = 0, combo = false } = {}) {
     this.id = dropId;
     this.lock = Math.random() > 0.5;
     this.power = Math.floor(Math.random() * 3) - 1;
+    this.combo = Math.random() > 0.9;
   }
 
   draw(ctx, options = {}) {
@@ -115,6 +120,10 @@ class Drop {
       //ドロップをロック
       if (this.lock) {
         drawDrop = lockDecorator(ctx, opt, drawDrop);
+      }
+      //コンボろどっぷ
+      if (this.combo) {
+        drawDrop = comboDecorator(ctx, opt, drawDrop);
       }
       //消せないドロップのバツマーク
       if(disabled){
