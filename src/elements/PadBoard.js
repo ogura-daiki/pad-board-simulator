@@ -124,7 +124,6 @@ class PADBoard extends HTMLElement {
 
     const beginPuzzle = e => {
       const pointerPos = this.#getPointerTile(e);
-      console.log(this.#mode);
       if(this.#mode === "palette"){
         this.dispatchEvent(new CustomEvent(
           "dropPushed",
@@ -144,7 +143,7 @@ class PADBoard extends HTMLElement {
     }
     this.#canvas.addEventListener("pointerdown", beginPuzzle);
     //this.#canvas.addEventListener("touchstart", beginPuzzle);
-    
+
     this.#canvas.addEventListener("touchmove", e=>{
       e.preventDefault();
     });
