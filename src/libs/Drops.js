@@ -93,11 +93,24 @@ class Drop {
   }
 
   createGhost(ghost){
-    ghost.querySelector(".layer._1").src = dropImages[this.id].src;
+    const layer1 = ghost.querySelector(".layer._1");
+    layer1.src = dropImages[this.id].src;
+
     const layer2 = ghost.querySelector(".layer._2");
     let bg = [];
     if(this.power !== 0){
-      bg.push(`url(${dropEffectImages[(this.power-1)/-2].src})`);
+      bg.push(`url(${dropEffectImages[(this.power-1)/-2].src})`);    
+      //強化ドロップ
+      if(this.power === 1){
+        layer1.style.filter = `brightness(120%)`;
+      }
+      //弱化ドロップ
+      if(this.power === -1){
+        layer1.style.filter = `brightness(70%)`;
+      }
+    }
+    else{
+      layer1.style.filter = "";
     }
     if(this.lock){
       bg.push(`url(${dropEffectImages[2].src})`);
