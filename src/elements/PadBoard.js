@@ -73,8 +73,14 @@ class PADBoard extends HTMLElement {
 
     this.size = 6;
 
-    this.#canvas.addEventListener("pointerdown", e=>{
+    this.#canvas.addEventListener("mousedown", e=>{
       this.#states.pointerDown = true;
+    });
+    this.#canvas.addEventListener("touchstart", e=>{
+      this.#states.pointerDown = true;
+    });
+    this.#canvas.addEventListener("touchmove", e=>{
+      e.preventDefault();
     });
 
     const finishPuzzle = () => {
