@@ -106,10 +106,10 @@ class Drop {
   #nail;
   constructor(dropId, { lock = false, power = 0, combo = false, nail = false } = {}) {
     this.#id = dropId;
-    this.lock = Math.random() > 0.5;
-    this.#power = Math.floor(Math.random() * 3) - 1;
-    this.#combo = Math.random() > 0.9;
-    this.#nail = Math.random() > 0.9;
+    this.lock = lock;
+    this.#power = power;
+    this.#combo = combo;
+    this.#nail = nail;
   }
 
   draw(ctx, options = {}) {
