@@ -154,8 +154,8 @@ class PADBoard extends HTMLElement {
     }
     const rect = this.#canvas.getBoundingClientRect();
     this.#raw = {
-      x: clamp(0, e.pageX-rect.left, this.#canvas.offsetWidth),
-      y: clamp(0, e.pageY-rect.top, this.#canvas.offsetHeight),
+      x: e.pageX-rect.left,
+      y: e.pageY-rect.top,
     };
     const x = clamp(0, Math.floor(this.#raw.x / this.#canvas.offsetWidth * this.size), this.size-1);
     const y = clamp(0, Math.floor(this.#raw.y / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
@@ -228,7 +228,7 @@ class PADBoard extends HTMLElement {
       const drop = this.#states.board[pos.y][pos.x];
       this.#ghost.src = dropImages[drop].src;
     }
-    this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset}px)`;
+    this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
   }
 
   render() {
