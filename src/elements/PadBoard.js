@@ -1,21 +1,9 @@
+import { Drop, dropImages } from "../libs/Drops.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 
-const dropNames = [
-  "fire", "water", "wood", "light", "dark", "heal",
-  "poison", "deadlypoison", "trash", "bomb",
-];
-const dropFilePath = (dropName) => `./src/images/drops/${dropName}.png`;
-
-const loadImage = (filePath) => new Promise((res) => {
-  const img = new Image();
-  img.addEventListener("load", e=>{
-    res(img);
-  });
-  img.src = filePath;
-});
-const dropImages = await Promise.allSettled(dropNames.map(dropName => loadImage(dropFilePath(dropName)))).then(results=>results.map(r=>r.value));
-
 const clamp = (min, x, max) => Math.max(min, Math.min(x, max));
+
+const newBoard = (long) => [...Array(long-1)].map(() => [...Array(long)].map(() => new Drop(Math.floor(Math.random() * 6))));
 
 class PADBoard extends HTMLElement {
 
@@ -92,7 +80,7 @@ class PADBoard extends HTMLElement {
         value: 6,
       },
       board: {
-        value: [...Array(5)].map(() => [...Array(6)].map(() => Math.floor(Math.random() * 6))),
+        value: newBoard(6),
       },
       pointerDown: {
         value:false,
@@ -170,7 +158,7 @@ class PADBoard extends HTMLElement {
   set size(size) {
     this.#canvas.width = size * this.#tileSize;
     this.#canvas.height = (size - 1) * this.#tileSize;
-    const board = [...Array(size - 1)].map(() => [...Array(size)].map(() => Math.floor(Math.random() * 6)));
+    const board = newBoard(size);
     this.#states.updateStates({
       size,
       board
@@ -207,12 +195,8 @@ class PADBoard extends HTMLElement {
   #drawDrop(ctx) {
     const pos = this.#states.pointerPos;
     this.#loopTile(({top, left})=>{
-      const drop = this.#states.board[top][left];
-      if(pos.y === top && pos.x === left){
-        ctx.globalAlpha = 0.5;
-      }
-      ctx.drawImage(dropImages[drop], left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
-      ctx.globalAlpha = 1;
+      const hold = pos.x === left && pos.y === top;
+      this.#states.board[top][left].draw(ctx, {size:this.#tileSize, x:left, y:top, hold});
     });
   }
 
@@ -226,7 +210,7 @@ class PADBoard extends HTMLElement {
     if(!this.#states.pointerPos.empty){
       const pos = this.#states.pointerPos;
       const drop = this.#states.board[pos.y][pos.x];
-      this.#ghost.src = dropImages[drop].src;
+      this.#ghost.src = dropImages[drop.id].src;
     }
     this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
   }
