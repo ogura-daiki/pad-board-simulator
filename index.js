@@ -35,12 +35,14 @@ const style = css`
   flex-flow:column;
   overflow:hidden;
 }
-#sizes{
+#menuContents{
   flex-grow:1;
   flex-basis:0px;
   overflow-y:scroll;
+}
+#sizes{
   display:flex;
-  flex-flow:column;
+  flex-flow:row;
 }
 
 #menu{
@@ -84,8 +86,10 @@ class App extends LitElement{
     <aspect-container .ratio=${this.ratio} id=container>
       <div id=screen>
         <div id=menuContainer>
-          <div id=sizes>
-            ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
+          <div id=menuContents>
+            <div id=sizes>
+              ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
+            </div>
           </div>
           <div id=menu>
             ${menuList.map((label)=>html`<button>${label}</button>`)}
