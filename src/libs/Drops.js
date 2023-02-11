@@ -102,12 +102,14 @@ const brightnessDecorator = (ctx, brightness, draw) => ()=>{
 class Drop {
   #id;
   #power;
+  #combo;
+  #nail;
   constructor(dropId, { lock = false, power = 0, combo = false, nail = false } = {}) {
     this.#id = dropId;
     this.lock = Math.random() > 0.5;
     this.#power = Math.floor(Math.random() * 3) - 1;
-    this.combo = Math.random() > 0.9;
-    this.nail = Math.random() > 0.9;
+    this.#combo = Math.random() > 0.9;
+    this.#nail = Math.random() > 0.9;
   }
 
   draw(ctx, options = {}) {
@@ -115,7 +117,7 @@ class Drop {
     const { size, x, y, hold, disables } = options;
 
     const disabled = disables.has(this.#id);
-    const vals = [this.#id, this.#power, this.lock, this.combo, this.nail, disabled];
+    const vals = [this.#id, this.#power, this.lock, this.#combo, this.#nail, disabled];
     const dropImage = getCachedDropImage(vals, ctx=>{
       const opt = {...options, x:0, y:0, size:128};
       const drawDropImage = () => {
@@ -145,11 +147,11 @@ class Drop {
         drawDrop = lockDecorator(ctx, opt, drawDrop);
       }
       //コンボドロップ
-      if (this.combo) {
+      if (this.#combo) {
         drawDrop = comboDecorator(ctx, opt, drawDrop);
       }
       //釘ドロップ
-      if (this.nail) {
+      if (this.#nail) {
         drawDrop = nailDecorator(ctx, opt, drawDrop);
       }
       //消せないドロップのバツマーク
@@ -171,9 +173,9 @@ class Drop {
 
   set id(value){
     this.#id = value;
-    if(!normalDrops.some(({id})=>id===value)){
-      this.power = 0;
-    }
+    this.power = this.power;
+    this.combo = this.combo;
+    this.nail = this.nail;
   }
   get id(){
     return this.#id;
@@ -188,6 +190,28 @@ class Drop {
   }
   get power(){
     return this.#power;
+  }
+
+  set nail(value){
+    if(!normalDrops.some(({id})=>id===this.#id)){
+      this.#nail = false;
+      return;
+    }
+    this.#nail = value;
+  }
+  get nail(){
+    return this.#nail;
+  }
+
+  set combo(value){
+    if(!normalDrops.some(({id})=>id===this.#id)){
+      this.#combo = false;
+      return;
+    }
+    this.#combo = value;
+  }
+  get combo(){
+    return this.#combo;
   }
 
   createGhost(ghost) {
