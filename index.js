@@ -16,14 +16,33 @@ const style = css`
     linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.8)),
     url("./src/images/bg.png")
     ;
+  display:grid;
+  place-items:center;
 }
 #screen{
   background:black;
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-rows:1fr 0fr;
 }
 #board{
   background:rgb(60, 30, 0);
   color:white;
 }
+#menuContainer{
+  display:flex;
+  flex-flow:column;
+  overflow:hidden;
+}
+#sizes{
+  flex-grow:1;
+  flex-basis:0px;
+  overflow-y:scroll;
+  display:flex;
+  flex-flow:column;
+}
+
 #menu{
   border:solid lightgray;
   border-width:4px 0px;
@@ -62,10 +81,10 @@ class App extends LitElement{
   }
   render(){
     return html`
-    <aspect-container .ratio=${this.ratio} id=container style="display:grid;place-items:center;">
-      <div id=screen style="width:100%;height:100%;display:grid;grid-template-rows:1fr 0fr">
-        <div style="display:flex;flex-flow:column;overflow:hidden;">
-          <div style="flex-grow:1;flex-basis:0px; overflow-y:scroll;display:flex;flex-flow:column;">
+    <aspect-container .ratio=${this.ratio} id=container>
+      <div id=screen>
+        <div id=menuContainer>
+          <div id=sizes>
             ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
           </div>
           <div id=menu>
