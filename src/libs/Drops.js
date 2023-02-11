@@ -100,10 +100,12 @@ const brightnessDecorator = (ctx, brightness, draw) => ()=>{
 }
 
 class Drop {
+  #id;
+  #power;
   constructor(dropId, { lock = false, power = 0, combo = false, nail = false } = {}) {
-    this.id = dropId;
+    this.#id = dropId;
     this.lock = Math.random() > 0.5;
-    this.power = Math.floor(Math.random() * 3) - 1;
+    this.#power = Math.floor(Math.random() * 3) - 1;
     this.combo = Math.random() > 0.9;
     this.nail = Math.random() > 0.9;
   }
@@ -112,20 +114,20 @@ class Drop {
 
     const { size, x, y, hold, disables } = options;
 
-    const disabled = disables.has(this.id);
-    const vals = [this.id, this.power, this.lock, this.combo, this.nail, disabled];
+    const disabled = disables.has(this.#id);
+    const vals = [this.#id, this.#power, this.lock, this.combo, this.nail, disabled];
     const dropImage = getCachedDropImage(vals, ctx=>{
       const opt = {...options, x:0, y:0, size:128};
       const drawDropImage = () => {
-        drawImage(ctx, opt, dropImages[this.id]);
+        drawImage(ctx, opt, dropImages[this.#id]);
       }
 
       let drawDrop = drawDropImage;
       let brightness = 100;
 
       //強化、弱化によって明暗を変更
-      if(this.power !== 0){
-        brightness *= [1.2, 0.7][getPowerEffectIndex(this.power)];
+      if(this.#power !== 0){
+        brightness *= [1.2, 0.7][getPowerEffectIndex(this.#power)];
       }
       //消せない場合は暗く
       if(disabled){
@@ -135,8 +137,8 @@ class Drop {
       drawDrop = brightnessDecorator(ctx, brightness, drawDrop);
       
       //ドロップの強化・弱化を反映
-      if (this.power !== 0) {
-        drawDrop = powerDecorator(ctx, opt, this.power, drawDrop);
+      if (this.#power !== 0) {
+        drawDrop = powerDecorator(ctx, opt, this.#power, drawDrop);
       }
       //ドロップをロック
       if (this.lock) {
@@ -167,15 +169,36 @@ class Drop {
     drawDrop();
   }
 
+  set id(value){
+    this.#id = value;
+    if(!normalDrops.some(({id})=>id===value)){
+      this.power = 0;
+    }
+  }
+  get id(){
+    return this.#id;
+  }
+
+  set power(value){
+    if(!normalDrops.some(({id})=>id===this.#id)){
+      this.#power = 0;
+      return;
+    }
+    this.#power = value;
+  }
+  get power(){
+    return this.#power;
+  }
+
   createGhost(ghost) {
     const layer1 = ghost.querySelector(".layer._1");
-    layer1.src = dropImages[this.id].src;
+    layer1.src = dropImages[this.#id].src;
 
     const layer2 = ghost.querySelector(".layer._2");
     let bg = [];
-    if (this.power !== 0) {
-      bg.push(`url(${dropEffectImages[getPowerEffectIndex(this.power)].src})`);
-      layer1.style.filter = getBrightness(this.power);
+    if (this.#power !== 0) {
+      bg.push(`url(${dropEffectImages[getPowerEffectIndex(this.#power)].src})`);
+      layer1.style.filter = getBrightness(this.#power);
     }
     else {
       layer1.style.filter = "";
