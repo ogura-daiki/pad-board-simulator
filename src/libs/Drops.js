@@ -20,8 +20,8 @@ const dropEffectImages = await loadImages(dropEffects.map(p => dropFilePathFromN
 
 const dropModifier = (imagePath, modifier) => ({image:imagePath, modifier});
 const modifierList = [
-  ...dropNames.map((name, id)=>dropModifier(dropFilePathFromName(name), drop=>drop.id = id)),
-  ...["plus", "minus"].map((name, index)=>dropModifier(dropFilePathFromName(name), drop=>{
+  ...dropNames.map((name, id)=>dropModifier(dropFilePathFromName(name), ({drop})=>drop.id = id)),
+  ...["plus", "minus"].map((name, index)=>dropModifier(dropFilePathFromName(name), ({drop})=>{
     const power = index*-2+1;
     if(drop.power !== power){
       drop.power = power;
@@ -30,7 +30,7 @@ const modifierList = [
       drop.power = 0;
     }
   })),
-  ...["lock", "combo", "nail"].map((name)=>dropModifier(dropFilePathFromName(name), drop=>drop[name] = !drop[name])),
+  ...["lock", "combo", "nail"].map((name)=>dropModifier(dropFilePathFromName(name), ({drop})=>drop[name] = !drop[name])),
 ];
 
 const cacheDropImage = new Map();

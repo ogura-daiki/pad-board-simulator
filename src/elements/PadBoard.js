@@ -123,9 +123,21 @@ class PADBoard extends HTMLElement {
     this.size = 6;
 
     const beginPuzzle = e => {
+      const pointerPos = this.#getPointerTile(e);
+      console.log(this.#mode);
+      if(this.#mode === "palette"){
+        this.dispatchEvent(new CustomEvent(
+          "dropPushed",
+          {
+            detail:{target:this, pointerPos},
+            composed:true, bubbles:true
+          }
+        ));
+        return;
+      }
       this.#states.updateStates({
         pointerDown:true,
-        pointerPos:this.#getPointerTile(e),
+        pointerPos
       });
       this.#drawGhost();
       this.#moveGhost();
@@ -156,6 +168,17 @@ class PADBoard extends HTMLElement {
     new ResizeObserver(()=>{
       this.#rect = this.#canvas.getBoundingClientRect();
     }).observe(this);
+  }
+
+  #mode;
+  set mode(value){
+    this.#mode = value;
+  }
+
+  modifyDrop(pos, func){
+    const drop = this.#states.board[pos.y][pos.x];
+    func({drop, board:this.#states.board});
+    this.render();
   }
 
   #raw={empty:true};

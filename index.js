@@ -183,7 +183,7 @@ class App extends LitElement{
     ))}
     ${this.#option("ドロップパレット", html`
       <div class=list
-        @changed=${e=>this.selectedPalette = modifierList[e.target.value]}
+        @change=${e=>this.selectedPalette = modifierList[e.target.value]}
       >
         ${modifierList.map((modifier, index)=>html`
           <label>
@@ -215,7 +215,13 @@ class App extends LitElement{
           </div>
         </div>
         <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} fit="width" id=board>
-          <pad-board .size=${this.boardSize}></pad-board>
+          <pad-board
+            .size=${this.boardSize}
+            .mode=${this.opened}
+            @dropPushed=${e=>{
+              e.target.modifyDrop(e.detail.pointerPos, this.selectedPalette.modifier);
+            }}
+          ></pad-board>
         </aspect-container>
       </div>
     </aspect-container>
