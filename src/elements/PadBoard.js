@@ -4,6 +4,7 @@ const dropNames = [
   "fire", "water", "wood", "light", "dark", "heal",
   "poison", "deadlypoison", "trash", "bomb",
 ];
+const dropFilePath = (dropName) => `./src/images/drops/${dropName}.png`;
 
 const loadImage = (filePath) => new Promise((res) => {
   const img = new Image();
@@ -12,7 +13,7 @@ const loadImage = (filePath) => new Promise((res) => {
   });
   img.src = filePath;
 });
-const dropImages = await Promise.allSettled(dropNames.map(dropName => loadImage(`./src/images/drops/${dropName}.png`))).then(results=>results.map(r=>r.value));
+const dropImages = await Promise.allSettled(dropNames.map(dropName => loadImage(dropFilePath(dropName)))).then(results=>results.map(r=>r.value));
 
 const clamp = (min, x, max) => Math.max(min, Math.min(x, max));
 
@@ -24,16 +25,28 @@ class PADBoard extends HTMLElement {
       display:block;
       width:100%;
       height:100%;
+      position:relative;
     }
     #canvas{
       display:block;
       width:100%;
       height:100%;
+      user-select:none;
+    }
+    #ghost{
+      user-select:none;
+      pointer-events:none;
+      display:none;
+      position:absolute;
+      left:0px;
+      top:0px;
+      opacity:0.6;
     }
     `;
   }
 
   #canvas;
+  #ghost;
   #states;
   #tileSize = 128;
   constructor() {
@@ -42,6 +55,7 @@ class PADBoard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.style}</style>
       <canvas id="canvas"></canvas>
+      <img id="ghost" draggable=false>
     `;
 
     this.#states = ReactiveStates({
@@ -70,6 +84,7 @@ class PADBoard extends HTMLElement {
     this.#states.setCallback(() => this.render());
 
     this.#canvas = this.shadowRoot.querySelector("#canvas");
+    this.#ghost = this.shadowRoot.querySelector("#ghost");
 
     this.size = 6;
 
@@ -78,6 +93,7 @@ class PADBoard extends HTMLElement {
         pointerDown:true,
         pointerPos:this.#getPointerTile(e),
       });
+      this.#updateGhost();
     }
     this.#canvas.addEventListener("mousedown", beginPuzzle);
     this.#canvas.addEventListener("touchstart", beginPuzzle);
@@ -90,6 +106,7 @@ class PADBoard extends HTMLElement {
         pointerDown:false,
         pointerPos:{empty:true},
       });
+      this.#updateGhost();
     }
     window.addEventListener("touchend", finishPuzzle);
     window.addEventListener("mouseup", finishPuzzle);
@@ -98,16 +115,24 @@ class PADBoard extends HTMLElement {
       if(this.#states.pointerDown){
         this.#states.pointerPos = this.#getPointerTile(e);
       }
+      this.#updateGhost();
     });
   }
+
+  #raw={empty:true};
 
   #getPointerTile(e){
     if(e instanceof TouchEvent){
       e = e.touches[0];
     }
     const rect = this.#canvas.getBoundingClientRect();
-    const x = clamp(0, Math.floor((e.pageX-rect.left) / this.#canvas.offsetWidth * this.size), this.size-1);
-    const y = clamp(0, Math.floor((e.pageY-rect.top) / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
+    this.#raw = {
+      x: clamp(0, e.pageX-rect.left, this.#canvas.offsetWidth),
+      y: clamp(0, e.pageY-rect.top, this.#canvas.offsetHeight),
+    };
+    console.log(this.#raw)
+    const x = clamp(0, Math.floor(this.#raw.x / this.#canvas.offsetWidth * this.size), this.size-1);
+    const y = clamp(0, Math.floor(this.#raw.y / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
     return {x,y};
   }
 
@@ -162,7 +187,22 @@ class PADBoard extends HTMLElement {
       }
       ctx.drawImage(dropImages[drop], left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
       ctx.globalAlpha = 1;
-    })
+    });
+  }
+
+  #updateGhost(){
+    //少し大きく表示
+    const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
+    const offset = displayTileSize/2;
+    this.#ghost.style.width = `${displayTileSize}px`;
+    this.#ghost.style.height = `${displayTileSize}px`;
+    this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
+    if(!this.#states.pointerPos.empty){
+      const pos = this.#states.pointerPos;
+      const drop = this.#states.board[pos.y][pos.x];
+      this.#ghost.src = dropImages[drop].src;
+    }
+    this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset}px)`;
   }
 
   render() {
