@@ -1,4 +1,4 @@
-import ReactiveStates from "./ReactiveStates.js";
+import ReactiveStates from "../libs/ReactiveStates.js";
 
 const dropNames = [
   "fire", "water", "wood", "light", "dark", "heal",

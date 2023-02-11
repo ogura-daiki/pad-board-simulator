@@ -1,6 +1,6 @@
 import { css, html, LitElement, styleMap } from "./src/elements/Lit.js";
 import "./src/elements/AspectContainer.js";
-import "./PadBoard.js";
+import "./src/elements/PadBoard.js";
 
 const style = css`
 :host{
