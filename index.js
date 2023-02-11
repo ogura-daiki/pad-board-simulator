@@ -34,6 +34,11 @@ const style = css`
   display:flex;
   flex-flow:column;
   overflow:hidden;
+  background-image:
+    linear-gradient(rgba(0,0,0,.8), rgba(0,0,0,.8)),
+    url("./src/images/bg.png")
+    ;
+    color:white;
 }
 #menuContents{
   flex-grow:1;
@@ -57,8 +62,8 @@ const style = css`
 `;
 
 const menuList = [
-  "パズル",
-  "盤面変更",
+  {label:"盤面変更", name:"palette"},
+  {label:"パズル", name:"puzzle"},
 ];
 
 const sizeList = [
@@ -74,25 +79,39 @@ class App extends LitElement{
     return {
       ratio:{type:Number},
       boardSize:{type:Number},
+      opened:{type:String},
     }
   }
   constructor(){
     super();
     this.ratio = 1/2;
     this.boardSize = 6;
+    this.opened = menuList[0].name;
   }
+
+  _puzzle(){
+    return html`
+      操作時間：<input type=number min=0 max=120 step=1>
+    `;
+  }
+  _palette(){
+    return html`
+    <div id=sizes>
+      ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
+    </div>
+    `
+  }
+
   render(){
     return html`
     <aspect-container .ratio=${this.ratio} id=container>
       <div id=screen>
         <div id=menuContainer>
           <div id=menuContents>
-            <div id=sizes>
-              ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
-            </div>
+            ${this["_"+this.opened]()}
           </div>
           <div id=menu>
-            ${menuList.map((label)=>html`<button>${label}</button>`)}
+            ${menuList.map((menu)=>html`<button @click=${e=>this.opened = menu.name}>${menu.label}</button>`)}
           </div>
         </div>
         <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} fit="width" id=board>
