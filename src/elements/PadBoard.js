@@ -30,10 +30,20 @@ class PADBoard extends HTMLElement {
       top:0px;
       opacity:0.6;
     }
+    #ghost .layer{
+      display:block;
+      width:100%;
+      height:100%;
+      position:absolute;
+      left:0px;
+      top:0px;
+      background-size: contain;
+    }
     `;
   }
 
   #canvas;
+  #ghostCanvas;
   #ghost;
   #states;
   #tileSize = 128;
@@ -43,7 +53,10 @@ class PADBoard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.style}</style>
       <canvas id="canvas"></canvas>
-      <img id="ghost" draggable=false>
+      <div id="ghost" draggable=false>
+        <img class="layer _1">
+        <div class="layer _2"></div>
+      </div>
     `;
 
     const move = (board, from, to) => {
@@ -100,6 +113,7 @@ class PADBoard extends HTMLElement {
 
     this.#canvas = this.shadowRoot.querySelector("#canvas");
     this.#ghost = this.shadowRoot.querySelector("#ghost");
+    this.#ghostCanvas = this.shadowRoot.querySelector("#ghostCanvas");
 
     this.size = 6;
 
@@ -108,7 +122,8 @@ class PADBoard extends HTMLElement {
         pointerDown:true,
         pointerPos:this.#getPointerTile(e),
       });
-      this.#updateGhost();
+      this.#drawGhost();
+      this.#moveGhost();
     }
     this.#canvas.addEventListener("mousedown", beginPuzzle);
     this.#canvas.addEventListener("touchstart", beginPuzzle);
@@ -121,7 +136,7 @@ class PADBoard extends HTMLElement {
         pointerDown:false,
         pointerPos:{empty:true},
       });
-      this.#updateGhost();
+      this.#moveGhost();
     }
     window.addEventListener("touchend", finishPuzzle);
     window.addEventListener("mouseup", finishPuzzle);
@@ -130,7 +145,7 @@ class PADBoard extends HTMLElement {
       if(this.#states.pointerDown){
         this.#states.pointerPos = this.#getPointerTile(e);
       }
-      this.#updateGhost();
+      this.#moveGhost();
     });
   }
 
@@ -200,19 +215,27 @@ class PADBoard extends HTMLElement {
     });
   }
 
-  #updateGhost(){
+  #drawGhost(){
+    //少し大きく表示
+    const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
+    const sizes = {
+      width : `${displayTileSize}px`,
+      height : `${displayTileSize}px`,
+    };
+    const pos = this.#states.pointerPos;
+    if(!pos.empty){
+      Object.assign(this.#ghost.style, sizes);
+      const drop = this.#states.board[pos.y][pos.x];
+      drop.createGhost(this.#ghost);
+    }
+  }
+
+  #moveGhost(){
     //少し大きく表示
     const displayTileSize = this.#canvas.offsetWidth / this.size * 1.2;
     const offset = displayTileSize/2;
-    this.#ghost.style.width = `${displayTileSize}px`;
-    this.#ghost.style.height = `${displayTileSize}px`;
-    this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
-    if(!this.#states.pointerPos.empty){
-      const pos = this.#states.pointerPos;
-      const drop = this.#states.board[pos.y][pos.x];
-      this.#ghost.src = dropImages[drop.id].src;
-    }
     this.#ghost.style.transform = `translate(${this.#raw.x - offset}px,${this.#raw.y - offset*1.5}px)`;
+    this.#ghost.style.display = this.#states.pointerDown ? "block":"none";
   }
 
   render() {

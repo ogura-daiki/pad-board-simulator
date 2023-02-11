@@ -91,6 +91,19 @@ class Drop {
 
     
   }
+
+  createGhost(ghost){
+    ghost.querySelector(".layer._1").src = dropImages[this.id].src;
+    const layer2 = ghost.querySelector(".layer._2");
+    let bg = [];
+    if(this.power !== 0){
+      bg.push(`url(${dropEffectImages[(this.power-1)/-2].src})`);
+    }
+    if(this.lock){
+      bg.push(`url(${dropEffectImages[2].src})`);
+    }
+    layer2.style.backgroundImage = bg.join(",");
+  }
 }
 
 export {Drop, dropImages, dropEffectImages as powerImages};
