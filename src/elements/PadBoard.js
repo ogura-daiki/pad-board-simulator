@@ -142,8 +142,9 @@ class PADBoard extends HTMLElement {
       this.#drawGhost();
       this.#moveGhost();
     }
-    this.#canvas.addEventListener("mousedown", beginPuzzle);
-    this.#canvas.addEventListener("touchstart", beginPuzzle);
+    this.#canvas.addEventListener("pointerdown", beginPuzzle);
+    //this.#canvas.addEventListener("touchstart", beginPuzzle);
+    
     this.#canvas.addEventListener("touchmove", e=>{
       e.preventDefault();
     });
