@@ -1,4 +1,4 @@
-import { css, html, LitElement, styleMap } from "./src/js/Lit.js";
+import { css, html, LitElement, styleMap } from "./src/elements/Lit.js";
 import "./PadBoard.js";
 
 class AspectContainer extends LitElement {
