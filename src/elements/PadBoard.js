@@ -14,6 +14,8 @@ const loadImage = (filePath) => new Promise((res) => {
 });
 const dropImages = await Promise.allSettled(dropNames.map(dropName => loadImage(`./src/images/drops/${dropName}.png`))).then(results=>results.map(r=>r.value));
 
+const clamp = (min, x, max) => Math.max(min, Math.min(x, max));
+
 class PADBoard extends HTMLElement {
 
   static get style() {
@@ -48,6 +50,21 @@ class PADBoard extends HTMLElement {
       },
       board: {
         value: [...Array(5)].map(() => [...Array(6)].map(() => Math.floor(Math.random() * 6))),
+      },
+      pointerDown: {
+        value:false,
+      },
+      pointerPos: {
+        value:{empty:true},
+        hasChanged:(nv, ov) => {
+          const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
+          if(!ov.empty && !nv.empty && hasChange){
+            const drop = this.#states.board[nv.y][nv.x];
+            this.#states.board[nv.y][nv.x] = this.#states.board[ov.y][ov.x];
+            this.#states.board[ov.y][ov.x] = drop;
+          }
+          return hasChange;
+        },
       }
     });
     this.#states.setCallback(() => this.render());
@@ -55,6 +72,32 @@ class PADBoard extends HTMLElement {
     this.#canvas = this.shadowRoot.querySelector("#canvas");
 
     this.size = 6;
+
+    this.#canvas.addEventListener("pointerdown", e=>{
+      this.#states.pointerDown = true;
+    });
+
+    const finishPuzzle = () => {
+      this.#states.updateStates({
+        pointerDown:false,
+        pointerPos:{empty:true},
+      });
+    }
+    window.addEventListener("touchend", finishPuzzle);
+    window.addEventListener("mouseup", finishPuzzle);
+
+    window.addEventListener("pointermove", e=>{
+      if(this.#states.pointerDown){
+        this.#states.pointerPos = this.#getPointerTile(e);
+      }
+    });
+  }
+
+  #getPointerTile(e){
+    const rect = this.#canvas.getBoundingClientRect();
+    const x = clamp(0, Math.floor((e.pageX-rect.left) / this.#canvas.offsetWidth * this.size), this.size-1);
+    const y = clamp(0, Math.floor((e.offsetY-rect.top) / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
+    return {x,y};
   }
 
   #start;
@@ -70,6 +113,10 @@ class PADBoard extends HTMLElement {
       size,
       board
     });
+  }
+
+  get size(){
+    return this.#states.size;
   }
 
   #loopTile(callback) {
