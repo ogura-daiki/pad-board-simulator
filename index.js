@@ -44,10 +44,27 @@ const style = css`
   flex-grow:1;
   flex-basis:0px;
   overflow-y:scroll;
-}
-#sizes{
+
+  box-sizing:border-box;
+  padding:8px;
   display:flex;
-  flex-flow:row;
+  flex-flow:column;
+  gap:16px;
+}
+
+#menuContents>.option{
+  display:flex;
+  flex-flow:column;
+  gap:0px;
+}
+#menuContents>.option>.name{
+  font-size:1.2em;
+}
+#menuContents>.option>.list{
+  margin-left:8px;
+  display:flex;
+  flex-flow:row wrap;
+  gap:4px;
 }
 
 #menu{
@@ -69,6 +86,10 @@ const menuList = [
 const sizeList = [
   7,6,5
 ];
+const ratioList = [
+  {label:"2:1", value:1/2},
+  {label:"16:9", value:9/16},
+];
 
 class App extends LitElement{
   static get styles(){
@@ -84,7 +105,7 @@ class App extends LitElement{
   }
   constructor(){
     super();
-    this.ratio = 1/2;
+    this.ratio = ratioList[0];
     this.boardSize = 6;
     this.opened = menuList[0].name;
   }
@@ -94,17 +115,59 @@ class App extends LitElement{
       操作時間：<input type=number min=0 max=120 step=1>
     `;
   }
+  #option(name, content){
+    return html`
+    <div class=option>
+      <span class=name>${name}</span>
+      ${content}
+    </div>
+    `;
+  }
+  #radioList(list, name, {label, value, checked, changed}){
+    return html`
+      <div class=list
+        @change=${changed}
+      >
+        ${list.map((v, i)=>html`
+          <label>
+            <input
+              type=radio
+              name=${name}
+              .value=${value(v,i)}
+              ?checked=${checked(v,i)}
+            >
+            <span>${label(v,i)}</span>
+          </label>
+        `)}
+      </div>
+    `;
+  }
   _palette(){
     return html`
-    <div id=sizes>
-      ${sizeList.map(long=>html`<button @click=${()=>this.boardSize = long}>${long}×${long-1}</button>`)}
-    </div>
-    `
+    ${this.#option("画面の縦横比", this.#radioList(
+      ratioList, "aspectRatio",
+      {
+        label:({label})=>label,
+        value:(v,i)=>i,
+        checked:v=>v===this.ratio,
+        changed:e=>this.ratio = ratioList[+e.target.value],
+      }
+    ))}
+    ${this.#option("盤面のサイズ", this.#radioList(
+      sizeList, "boardSize",
+      {
+        label:long=>`${long}×${long-1}`,
+        value:v=>v,
+        checked:v=>v===this.boardSize,
+        changed:e=>this.boardSize = +e.target.value,
+      }
+    ))}
+    `;
   }
 
   render(){
     return html`
-    <aspect-container .ratio=${this.ratio} id=container>
+    <aspect-container .ratio=${this.ratio.value} id=container>
       <div id=screen>
         <div id=menuContainer>
           <div id=menuContents>
