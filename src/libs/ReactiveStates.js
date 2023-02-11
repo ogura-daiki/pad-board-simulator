@@ -25,7 +25,6 @@ const ReactiveStates = (init) => {
   const values = new Map(Object.entries(init).map(([name, o]) => [name, o.value]));
   const defaultChecker = (oldVal, newVal) => oldVal !== newVal;
 
-  console.log((name => init[name].hasChanged || defaultChecker)("pointerPos"))
   const update = Updater(keys, values, (name, newVal, oldVal) => (init[name].hasChanged || defaultChecker)(newVal, oldVal));
 
   let onUpdatedCallback = () => { };
