@@ -97,7 +97,7 @@ class Drop {
     const { size, x, y, hold, disables } = options;
 
     const disabled = disables.has(this.id);
-    const vals = [this.id, this.power, this.lock, disabled];
+    const vals = [this.id, this.power, this.lock, this.combo, this.nail, disabled];
     const dropImage = getCachedDropImage(vals, ctx=>{
       const opt = {...options, x:0, y:0, size:128};
       const drawDropImage = () => {
