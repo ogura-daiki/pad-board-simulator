@@ -1,9 +1,9 @@
 import { newBoard, swap, emulateMove } from "../libs/BoardUtil.js";
-import { Drop, dropImages } from "../libs/Drops.js";
+import { Drop } from "../libs/Drops.js";
 import Pattern from "../libs/Pattern.js";
 import { EmptyPos, Pos } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
-import { clamp, purifyObj } from "../libs/Util.js";
+import { clamp } from "../libs/Util.js";
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
