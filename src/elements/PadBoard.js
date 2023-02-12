@@ -94,9 +94,7 @@ class PADBoard extends HTMLElement {
     }
   }
 
-
-  constructor() {
-    super();
+  #initView(){
     this.attachShadow({ mode: "open" });
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.style}</style>
@@ -104,61 +102,64 @@ class PADBoard extends HTMLElement {
       <img id="ghost" draggable=false>
     `;
 
+    this.#canvas = this.shadowRoot.querySelector("#canvas");
+    this.#ghost = this.shadowRoot.querySelector("#ghost");
+  }
+
+  #onPointerDown(e){
+    if (this.#pointerId !== null) {
+      return;
+    }
+    this.#pointerId = e.pointerId;
+    const pointerPos = this.#getPointerTile(e);
+    this.#states.updateStates({
+      pointerDown: true,
+      pointerPos
+    });
+    this.#drawGhost();
+
+    if (this.#mode === "puzzle") {
+      this.#moveGhost();
+    }
+  }
+  #onPointerMove(e){
+    if (this.#pointerId !== e.pointerId) {
+      return;
+    }
+    if (this.#states.pointerDown) {
+      this.#states.pointerPos = this.#getPointerTile(e);
+    }
+    this.#moveGhost();
+  }
+  #onPointerUp(e){
+    if (e.pointerId !== this.#pointerId) {
+      return;
+    }
+    this.#pointerId = null;
+    this.#states.updateStates({
+      pointerDown: false,
+      pointerPos: EmptyPos(),
+    });
+    this.#moveGhost();
+  }
+
+  constructor() {
+    super();
+
+    this.#initView();
+
     this.#states = ReactiveStates(this.__defineStates);
     this.#states.setCallback(() => this.render());
 
-    this.#canvas = this.shadowRoot.querySelector("#canvas");
-    this.#ghost = this.shadowRoot.querySelector("#ghost");
+    //盤面操作、パズル
+    this.#canvas.addEventListener("pointerdown", e=>this.#onPointerDown(e));
+    window.addEventListener("pointermove", e=>this.#onPointerMove(e));
+    window.addEventListener("pointerup", e=>this.#onPointerUp(e));
 
-    this.size = 6;
+    //ポインターイベントが途中でキャンセルされることを防ぐ
+    this.#canvas.addEventListener("touchmove", e=>e.preventDefault());
 
-    const beginPuzzle = e => {
-      if (this.#pointerId !== null) {
-        return;
-      }
-      this.#pointerId = e.pointerId;
-      const pointerPos = this.#getPointerTile(e);
-      this.#states.updateStates({
-        pointerDown: true,
-        pointerPos
-      });
-      this.#drawGhost();
-
-      if (this.#mode === "puzzle") {
-        this.#moveGhost();
-      }
-    }
-    this.#canvas.addEventListener("pointerdown", beginPuzzle);
-    //this.#canvas.addEventListener("touchstart", beginPuzzle);
-
-    this.#canvas.addEventListener("touchmove", e => {
-      e.preventDefault();
-    });
-
-    const finishPuzzle = e => {
-      if (e.pointerId !== this.#pointerId) {
-        return;
-      }
-      this.#pointerId = null;
-      this.#states.updateStates({
-        pointerDown: false,
-        pointerPos: EmptyPos(),
-      });
-      this.#moveGhost();
-    }
-    window.addEventListener("pointerup", finishPuzzle);
-    //window.addEventListener("mouseup", finishPuzzle);
-
-    window.addEventListener("pointermove", e => {
-      if (this.#pointerId !== e.pointerId) {
-        return;
-      }
-      if (this.#states.pointerDown) {
-        this.#states.pointerPos = this.#getPointerTile(e);
-      }
-      this.#moveGhost();
-    });
-
+    //サイズの変化を記録しておく
     new ResizeObserver(() => {
       this.#rect = this.#canvas.getBoundingClientRect();
     }).observe(this);
