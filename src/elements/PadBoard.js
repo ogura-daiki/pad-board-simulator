@@ -324,5 +324,8 @@ class PADBoard extends HTMLElement {
   clearBoard(){
     this.#states.board = newBoard(this.#states.size, ()=>new Drop(-1));
   }
+  random(){
+    this.#states.board = newBoard(this.#states.size, ()=>new Drop(Math.floor(Math.random()*6)))
+  }
 }
 customElements.define("pad-board", PADBoard);

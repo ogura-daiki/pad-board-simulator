@@ -201,6 +201,10 @@ class App extends LitElement{
       const padBoard = this.renderRoot.querySelector("#padBoard");
       padBoard.clearBoard();
     }}>盤面をリセット</button>
+    <button @click=${e=>{
+      const padBoard = this.renderRoot.querySelector("#padBoard");
+      padBoard.random();
+    }}>盤面をランダム生成</button>
     ${this.#option("ドロップパレット", html`
       <div class=list
         @change=${e=>this.selectedPalette = modifierList[e.target.value]}
