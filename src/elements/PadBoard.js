@@ -179,8 +179,8 @@ class PADBoard extends HTMLElement {
       });
       this.#moveGhost();
     }
-    window.addEventListener("touchend", finishPuzzle);
-    window.addEventListener("mouseup", finishPuzzle);
+    window.addEventListener("pointerup", finishPuzzle);
+    //window.addEventListener("mouseup", finishPuzzle);
 
     window.addEventListener("pointermove", e=>{
       if(this.#pointerId !== e.pointerId){
