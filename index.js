@@ -109,6 +109,31 @@ const style = css`
   flex-flow:row;
   overflow-x:auto;
   width:100%;
+
+  background-image: url("./src/images/bg.png");
+  background-blend-mode: multiply;
+  background-color:rgba(0,0,0,.8);
+  padding:4px;
+  gap:4px;
+}
+#menu .menuTab{
+  appearance:none;
+  outline:none;
+  border:none;
+
+  background-image:url("./src/images/bg.png");
+  background-blend-mode: multiply;
+  background-color:rgba(0,0,0,.7);
+  border-radius:8px;
+  padding:8px 16px;
+  color:white;
+  font-weight:bold;
+  border:2px solid transparent;
+  border-color:rgba(255,255,255,.3);
+  transition:background .3s;
+}
+#menu .menuTab.open{
+  background-color:rgba(0,0,0,.4);
 }
 `;
 
@@ -269,7 +294,7 @@ class App extends LitElement{
             ${this["_"+this.opened]()}
           </div>
           <div id=menu>
-            ${menuList.map((menu)=>html`<button @click=${e=>this.opened = menu.name}>${menu.label}</button>`)}
+            ${menuList.map((menu)=>html`<button class="menuTab ${this.opened === menu.name?"open":""}" @click=${e=>this.opened = menu.name}>${menu.label}</button>`)}
           </div>
         </div>
         <aspect-container .ratio=${this.boardSize/(this.boardSize-1)} fit="width" id=board>
