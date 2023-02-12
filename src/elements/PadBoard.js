@@ -7,6 +7,13 @@ const newBoard = (long) => [...Array(long-1)].map(() => [...Array(long)].map(() 
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
+const Position = obj=>{
+  if(!obj) return {empty:true};
+  const {x,y} = obj;
+  return {x,y};
+};
+const EmptyPosition = ()=>Position();
+
 class PADBoard extends HTMLElement {
 
   static get style() {
@@ -107,7 +114,7 @@ class PADBoard extends HTMLElement {
         value:false,
       },
       pointerPos: {
-        value:{empty:true},
+        value:EmptyPosition(),
         hasChanged:(nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(!nv.empty && hasChange){
@@ -158,7 +165,7 @@ class PADBoard extends HTMLElement {
     const finishPuzzle = () => {
       this.#states.updateStates({
         pointerDown:false,
-        pointerPos:{empty:true},
+        pointerPos:EmptyPosition(),
       });
       this.#moveGhost();
     }
@@ -200,7 +207,7 @@ class PADBoard extends HTMLElement {
     return this.#states.disables.has(id);
   }
 
-  #raw={empty:true};
+  #raw=EmptyPosition();
   #rect;
   #getPointerTile(e){
     if(e instanceof TouchEvent){
@@ -213,7 +220,7 @@ class PADBoard extends HTMLElement {
     };
     const x = clamp(0, Math.floor(this.#raw.x / this.#canvas.offsetWidth * this.size), this.size-1);
     const y = clamp(0, Math.floor(this.#raw.y / this.#canvas.offsetHeight * (this.size-1)), this.size-2);
-    return {x,y};
+    return Position({x,y});
   }
 
   #start;
