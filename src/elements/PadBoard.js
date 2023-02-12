@@ -109,7 +109,7 @@ class PADBoard extends HTMLElement {
         hasChanged:(nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(!nv.empty && hasChange){
-            if(ov.empty){
+            if(ov.empty && this.#mode === "palette"){
               this.dispatchEvent(new CustomEvent(
                 "dropPushed",
                 {
