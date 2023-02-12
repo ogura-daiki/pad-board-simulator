@@ -81,9 +81,7 @@ class PADBoard extends HTMLElement {
       return;
     }
     if(from.empty){
-      if(this.#mode === "palette"){
-        this.onPointerMoved(to, from);
-      }
+      this.onPointerMoved(to, from);
       return;
     }
 
@@ -126,6 +124,9 @@ class PADBoard extends HTMLElement {
 
   onPointerMoved(nv, ov) {
     if(nv.empty){
+      return;
+    }
+    if(ov.empty && this.#mode !== "palette"){
       return;
     }
 
