@@ -3,7 +3,7 @@ import ReactiveStates from "../libs/ReactiveStates.js";
 
 const clamp = (min, x, max) => min > x?min:(x < max?x:max);
 
-const newBoard = (long) => [...Array(long-1)].map(() => [...Array(long)].map(() => new Drop(Math.floor(Math.random() * 6))));
+const newBoard = (long, genDrop=() => new Drop(Math.floor(Math.random() * 6))) => [...Array(long-1)].map(() => [...Array(long)].map(genDrop));
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
@@ -319,6 +319,10 @@ class PADBoard extends HTMLElement {
     const ctx = this.#canvas.getContext("2d");
     this.#drawBG(ctx);
     this.#drawDrop(ctx);
+  }
+
+  clearBoard(){
+    this.#states.board = newBoard(this.#states.size, ()=>new Drop(-1));
   }
 }
 customElements.define("pad-board", PADBoard);

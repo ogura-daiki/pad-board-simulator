@@ -197,6 +197,10 @@ class App extends LitElement{
         changed:e=>this.boardSize = +e.target.value,
       }
     ))}
+    <button @click=${e=>{
+      const padBoard = this.renderRoot.querySelector("#padBoard");
+      padBoard.clearBoard();
+    }}>盤面をリセット</button>
     ${this.#option("ドロップパレット", html`
       <div class=list
         @change=${e=>this.selectedPalette = modifierList[e.target.value]}
