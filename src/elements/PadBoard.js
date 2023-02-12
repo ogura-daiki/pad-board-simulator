@@ -1,4 +1,5 @@
 import { Drop, dropImages } from "../libs/Drops.js";
+import { EmptyPos, Pos } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 
 const clamp = (min, x, max) => min > x ? min : (x < max ? x : max);
@@ -7,21 +8,6 @@ const newBoard = (long, genDrop = () => new Drop(Math.floor(Math.random() * 6)))
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
-class Position {
-  constructor(obj){
-    
-    const {x,y,empty} = {...{x:null, y:null, empty:false}, ...(obj||{empty:true})};
-    this.empty = empty;
-    this.x = x;
-    this.y = y;
-
-  }
-  clone(){
-    return new Position(this);
-  }
-}
-const Pos = obj => new Position(obj);
-const EmptyPos = () => Pos();
 
 const swap = (board, p1, p2) => {
   const drop = board[p1.y][p1.x];
