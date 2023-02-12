@@ -46,6 +46,8 @@ class PADBoard extends HTMLElement {
   #ghost;
   #states;
   #tileSize = 128;
+  
+  #pointerId = null;
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -144,6 +146,10 @@ class PADBoard extends HTMLElement {
     this.size = 6;
 
     const beginPuzzle = e => {
+      if(this.#pointerId !== null){
+        return;
+      }
+      this.#pointerId = e.pointerId;
       const pointerPos = this.#getPointerTile(e);
       this.#states.updateStates({
         pointerDown:true,
@@ -162,7 +168,11 @@ class PADBoard extends HTMLElement {
       e.preventDefault();
     });
 
-    const finishPuzzle = () => {
+    const finishPuzzle = e => {
+      if(e.pointerId !== this.#pointerId){
+        return;
+      }
+      this.#pointerId = null;
       this.#states.updateStates({
         pointerDown:false,
         pointerPos:EmptyPosition(),
@@ -173,6 +183,9 @@ class PADBoard extends HTMLElement {
     window.addEventListener("mouseup", finishPuzzle);
 
     window.addEventListener("pointermove", e=>{
+      if(this.#pointerId !== e.pointerId){
+        return;
+      }
       if(this.#states.pointerDown){
         this.#states.pointerPos = this.#getPointerTile(e);
       }
@@ -209,6 +222,7 @@ class PADBoard extends HTMLElement {
 
   #raw=EmptyPosition();
   #rect;
+
   #getPointerTile(e){
     if(e instanceof TouchEvent){
       e = e.touches[0];
