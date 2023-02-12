@@ -147,11 +147,25 @@ class PADBoard extends HTMLElement {
       top:0px;
       opacity:0.6;
     }
+    #animationLayer{
+      position:absolute;
+      top:0px;
+      left:0px;
+      width:100%;
+      height:100%;
+      user-select:none;
+      pointer-events:none;
+    }
+    @keyframes fadeout{
+      from{opacity:1}
+      to{opacity:0}
+    }
     `;
   }
 
   #canvas;
   #ghost;
+  #animationLayer;
   #states;
   #tileSize = 128;
 
@@ -218,10 +232,12 @@ class PADBoard extends HTMLElement {
       <style>${this.constructor.style}</style>
       <canvas id="canvas"></canvas>
       <img id="ghost" draggable=false>
+      <div id="animationLayer"></div>
     `;
 
     this.#canvas = this.shadowRoot.querySelector("#canvas");
     this.#ghost = this.shadowRoot.querySelector("#ghost");
+    this.#animationLayer = this.shadowRoot.querySelector("#animationLayer");
   }
 
   #onPointerDown(e){
@@ -257,9 +273,30 @@ class PADBoard extends HTMLElement {
     if(this.#mode === "puzzle"){
       const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
       const board = this.#states.board;
+      const size = this.#states.size;
       for(const [comboId, posList] of comboPosList.entries()){
+        console.log(posList);
         for(const pos of posList){
-          board[pos.y][pos.x].id = -1;
+          const drop = board[pos.y][pos.x];
+          if(drop.id === -1) continue;
+
+          const fadeoutDuration = 1;
+
+          const img = document.createElement("img");
+          drop.createGhost(img);
+          Object.assign(img.style, {
+            position:"absolute",
+            display:"block",
+            left:(100/size * pos.x)+"%",
+            top:(100/(size-1) * pos.y)+"%",
+            width:(100/size)+"%",
+            height:(100/(size-1))+"%",
+            animation:`${fadeoutDuration}s fadeout both`,
+            "animation-delay":`${(comboId-1)*fadeoutDuration}s`,
+          });
+          this.#animationLayer.append(img);
+
+          drop.id = -1;
         }
       }
     }
