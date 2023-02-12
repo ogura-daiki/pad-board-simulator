@@ -7,12 +7,21 @@ const newBoard = (long, genDrop = () => new Drop(Math.floor(Math.random() * 6)))
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
-const Position = obj => {
-  if (!obj) return { empty: true };
-  const { x, y } = obj;
-  return { x, y };
-};
-const EmptyPosition = () => Position();
+class Position {
+  constructor(obj){
+    
+    const {x,y,empty} = {...{x:null, y:null, empty:false}, ...(obj||{empty:true})};
+    this.empty = empty;
+    this.x = x;
+    this.y = y;
+
+  }
+  clone(){
+    return new Position(this);
+  }
+}
+const Pos = obj => new Position(obj);
+const EmptyPos = () => Pos();
 
 const swap = (board, p1, p2) => {
   const drop = board[p1.y][p1.x];
@@ -98,7 +107,9 @@ class PADBoard extends HTMLElement {
     const factorX = pos.x > to.x ? -1 : 1;
     const factorY = pos.y > to.y ? -1 : 1;
 
-    while (true) {
+    let cnt = 100;
+    while (cnt>0) {
+      cnt--;
       let hasDiff = false;
       if (pos.x !== to.x) {
         pos.x += factorX
@@ -153,7 +164,7 @@ class PADBoard extends HTMLElement {
         value: false,
       },
       pointerPos: {
-        value: EmptyPosition(),
+        value: EmptyPos(),
         hasChanged: (nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(hasChange){
@@ -216,7 +227,7 @@ class PADBoard extends HTMLElement {
       this.#pointerId = null;
       this.#states.updateStates({
         pointerDown: false,
-        pointerPos: EmptyPosition(),
+        pointerPos: EmptyPos(),
       });
       this.#moveGhost();
     }
@@ -261,7 +272,7 @@ class PADBoard extends HTMLElement {
     return this.#states.disables.has(id);
   }
 
-  #raw = EmptyPosition();
+  #raw = EmptyPos();
   #rect;
 
   #getPointerTile(e) {
@@ -275,7 +286,7 @@ class PADBoard extends HTMLElement {
     };
     const x = clamp(0, Math.floor(this.#raw.x / this.#canvas.offsetWidth * this.size), this.size - 1);
     const y = clamp(0, Math.floor(this.#raw.y / this.#canvas.offsetHeight * (this.size - 1)), this.size - 2);
-    return Position({ x, y });
+    return Pos({ x, y });
   }
 
   #start;
