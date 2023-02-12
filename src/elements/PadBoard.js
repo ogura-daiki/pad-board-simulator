@@ -2,12 +2,10 @@ import { newBoard, swap, emulateMove } from "../libs/BoardUtil.js";
 import { Drop, dropImages } from "../libs/Drops.js";
 import { EmptyPos, Pos } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
-
-const clamp = (min, x, max) => min > x ? min : (x < max ? x : max);
+import { clamp, purifyObj } from "../libs/Util.js";
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
-const purifyObj = obj => Object.assign(Object.create(null), obj);
 const Pattern = obj => {
   const keys = new Set(Object.keys(obj));
   const purified = purifyObj(obj);
