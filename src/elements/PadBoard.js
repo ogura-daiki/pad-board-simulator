@@ -1,9 +1,124 @@
 import { newBoard, swap, emulateMove, cloneBoard } from "../libs/BoardUtil.js";
 import { Drop } from "../libs/Drops.js";
 import Pattern from "../libs/Pattern.js";
-import { EmptyPos, Pos } from "../libs/Position.js";
+import { EmptyPos, Pos, Position } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 import { clamp } from "../libs/Util.js";
+
+const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
+
+const countCombo = (board, disables) => {
+  disables = new Set(disables);
+  disables.add(-1);
+  const minCount = 3;
+
+  //コンボ発生をチェック
+  const comboCheck = board.map(row=>row.map(()=>false));
+  for(let y=board.length-1;y>=0;y-=1){
+    for(let x=0;x<board[0].length;x+=1){
+      const drop = board[y][x];
+
+      //消せないドロップは除外
+      if(disables.has(drop.id)){
+        continue;
+      }
+      
+      //横方向
+      const xEnd = x+minCount-1;
+      if(xEnd<board[0].length){
+        const xRange = range(x, xEnd);
+        const isXCombo = xRange.every(xNeedle => board[y][xNeedle].id === drop.id);
+        if(isXCombo){
+          xRange.forEach(xNeedle => comboCheck[y][xNeedle] = true);
+        }
+      }
+
+      //縦方向
+      const yEnd = y-minCount+1;
+      if(yEnd>=0){
+        const yRange = range(yEnd, y);
+        const isYCombo = yRange.every(yNeedle => board[yNeedle][x].id === drop.id);
+        if(isYCombo){
+          yRange.forEach(yNeedle => comboCheck[yNeedle][x] = true);
+        }
+      }
+    }
+  }
+
+  const noComboCount = 99999;
+  //同一コンボをカウント
+  const comboCounter = board.map(row=>row.map(()=>noComboCount));
+  const comboPosList = new Map();
+  let maxComboId = 0;
+  const makeComboId = (v1, v2) => {
+    const min = Math.min(v1, v2);
+    const max = Math.max(v1, v2);
+    
+    //コンボがあった
+    if(min !== noComboCount){
+      //v1, v2ともに別カウントに所属しているのてマージする
+      if(max !== noComboCount && min !== max){
+        const container = comboPosList.get(min);
+        for(const pos of comboPosList.get(max)){
+          comboCounter[pos.y][pos.x] = min;
+          container.push(pos);
+        }
+        comboPosList.delete(max);
+      }
+      //小さい方を返す
+      return min;
+    }
+    
+    //コンボが無かったので新しいコンボを追加
+    maxComboId++;
+    comboPosList.set(maxComboId, []);
+    return maxComboId;
+  }
+  const setCombo = (comboId, posList) => {
+    const container = comboPosList.get(comboId);
+    for(const pos of posList){
+      container.push(pos);
+      comboCounter[pos.y][pos.x] = comboId;
+    }
+  }
+
+  const endX = comboCheck[0].length;
+  for(let y=comboCheck.length-1;y>=0;y-=1){
+    for(let x=0;x<endX;x+=1){
+      const isCombo = comboCheck[y][x];
+      if(!isCombo){
+        continue;
+      }
+
+      //横方向
+      if(x+1<endX){
+        if(board[y][x].id === board[y][x+1].id && comboCheck[y][x+1]){
+          const comboId = makeComboId(comboCounter[y][x], comboCounter[y][x+1]);
+          setCombo(comboId, [Pos({y,x}), Pos({y,x:x+1})]);
+        }
+      }
+      //縦方向
+      if(y-1>=0){
+        if(board[y][x].id === board[y-1][x].id && comboCheck[y-1][x]){
+          const comboId = makeComboId(comboCounter[y][x], comboCounter[y-1][x]);
+          setCombo(comboId, [Pos({y,x}), Pos({y:y-1,x})]);
+        }
+      }
+    }
+  }
+
+
+  const comboCount = [...comboPosList.keys()].length;
+  [...comboPosList.keys()].sort().forEach((oldKey, index)=>{
+    const newKey = index+1;
+    if(oldKey !== newKey){
+      comboPosList.set(newKey, comboPosList.get(oldKey));
+      comboPosList.delete(oldKey);
+    }
+  });
+
+  return {count:comboCount, comboPosList};
+}
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
@@ -138,6 +253,15 @@ class PADBoard extends HTMLElement {
   #onPointerUp(e){
     if (e.pointerId !== this.#pointerId) {
       return;
+    }
+    if(this.#mode === "puzzle"){
+      const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
+      const board = this.#states.board;
+      for(const [comboId, posList] of comboPosList.entries()){
+        for(const pos of posList){
+          board[pos.y][pos.x].id = -1;
+        }
+      }
     }
     this.#pointerId = null;
     this.#states.updateStates({
