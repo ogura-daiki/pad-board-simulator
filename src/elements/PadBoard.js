@@ -1,35 +1,11 @@
 import { newBoard, swap, emulateMove } from "../libs/BoardUtil.js";
 import { Drop, dropImages } from "../libs/Drops.js";
+import Pattern from "../libs/Pattern.js";
 import { EmptyPos, Pos } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 import { clamp, purifyObj } from "../libs/Util.js";
 
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
-
-const Pattern = obj => {
-  const keys = new Set(Object.keys(obj));
-  const purified = purifyObj(obj);
-  return purifyObj({
-    get:(name)=>{
-      if(keys.has(name)){
-        return purified[name];
-      }
-      else if(keys.has("default")){
-        return purified["default"];
-      }
-      return undefined;
-    },
-    do(name){
-      const action = this.get(name);
-      if(typeof action === "function"){
-        action();
-        return true;
-      }
-      return false;
-    }
-  });
-};
-
 
 class PADBoard extends HTMLElement {
 
@@ -84,12 +60,10 @@ class PADBoard extends HTMLElement {
       return;
     }
 
-    const actions = Pattern({
+    new Pattern({
       palette:()=>this.dispatchDropPush(nv),
       puzzle:()=>swap(this.#states.board, ov, nv),
-    });
-
-    actions.do(this.#mode);
+    }).do(this.#mode);
 
   }
 
