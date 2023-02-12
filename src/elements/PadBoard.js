@@ -5,6 +5,8 @@ const clamp = (min, x, max) => min > x?min:(x < max?x:max);
 
 const newBoard = (long) => [...Array(long-1)].map(() => [...Array(long)].map(() => new Drop(Math.floor(Math.random() * 6))));
 
+const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
+
 class PADBoard extends HTMLElement {
 
   static get style() {
@@ -242,13 +244,12 @@ class PADBoard extends HTMLElement {
     }
   }
 
-  #bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
   #drawBG(ctx) {
     const size = this.#states.size;
-    ctx.fillStyle = this.#bgColor[0];
+    ctx.fillStyle = bgColor[0];
     ctx.fillRect(0, 0, size * this.#tileSize, size * this.#tileSize);
 
-    ctx.fillStyle = this.#bgColor[1];
+    ctx.fillStyle = bgColor[1];
     this.#loopTile(({top, left})=>{
       if ((left + top) % 2) {
         ctx.fillRect(left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
