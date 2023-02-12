@@ -1,19 +1,11 @@
+import { newBoard, swap, emulateMove } from "../libs/BoardUtil.js";
 import { Drop, dropImages } from "../libs/Drops.js";
 import { EmptyPos, Pos } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 
 const clamp = (min, x, max) => min > x ? min : (x < max ? x : max);
 
-const newBoard = (long, genDrop = () => new Drop(Math.floor(Math.random() * 6))) => [...Array(long - 1)].map(() => [...Array(long)].map(genDrop));
-
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
-
-
-const swap = (board, p1, p2) => {
-  const drop = board[p1.y][p1.x];
-  board[p1.y][p1.x] = board[p2.y][p2.x];
-  board[p2.y][p2.x] = drop;
-}
 
 const purifyObj = obj => Object.assign(Object.create(null), obj);
 const Pattern = obj => {
@@ -39,6 +31,7 @@ const Pattern = obj => {
     }
   });
 };
+
 
 class PADBoard extends HTMLElement {
 
@@ -74,43 +67,6 @@ class PADBoard extends HTMLElement {
   #tileSize = 128;
 
   #pointerId = null;
-
-  #emulateMove(from, to) {
-    
-    if(to.empty){
-      return;
-    }
-    if(from.empty){
-      this.onPointerMoved(to, from);
-      return;
-    }
-
-    const pos = { ...from };
-    const before = { ...pos };
-
-    const factorX = pos.x > to.x ? -1 : 1;
-    const factorY = pos.y > to.y ? -1 : 1;
-
-    let cnt = 100;
-    while (cnt>0) {
-      cnt--;
-      let hasDiff = false;
-      if (pos.x !== to.x) {
-        pos.x += factorX
-        hasDiff = true;
-      }
-      if (pos.y !== to.y) {
-        pos.y += factorY;
-        hasDiff = true;
-      }
-      if (!hasDiff) {
-        break;
-      }
-      this.onPointerMoved(pos, before);
-      before.x = pos.x;
-      before.y = pos.y;
-    }
-  }
 
   dispatchDropPush(pos){
     this.dispatchEvent(new CustomEvent(
@@ -155,7 +111,7 @@ class PADBoard extends HTMLElement {
         hasChanged: (nv, ov) => {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(hasChange){
-            this.#emulateMove(ov, nv);
+            emulateMove(ov, nv, (nv, ov)=>this.onPointerMoved(nv, ov));
           }
           return hasChange;
         },
