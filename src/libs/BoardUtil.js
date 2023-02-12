@@ -1,6 +1,9 @@
 import { Drop } from "./Drops.js";
 
 const newBoard = (long, genDrop = () => new Drop(Math.floor(Math.random() * 6))) => [...Array(long - 1)].map(() => [...Array(long)].map(genDrop));
+const cloneBoard = board => {
+  return board.map(row=>row.map(drop=>drop.clone()));
+}
 
 const swap = (board, p1, p2) => {
   const drop = board[p1.y][p1.x];
@@ -45,4 +48,4 @@ const emulateMove = (from, to, callback) => {
   }
 }
 
-export {newBoard, swap, emulateMove};
+export {newBoard, cloneBoard, swap, emulateMove};

@@ -221,6 +221,11 @@ class Drop {
     const image = getCachedDropImage([this.#id, this.#power, this.lock, this.#combo, this.#nail, false]);
     ghost.src = image.toDataURL();
   }
+
+  clone(){
+    const {lock, combo, nail, power} = this;
+    return new Drop(this.#id, {lock, combo, nail, power});
+  }
 }
 
 export { Drop, dropImages, dropEffectImages, modifierList, normalDrops };

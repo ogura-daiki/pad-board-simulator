@@ -1,4 +1,4 @@
-import { newBoard, swap, emulateMove } from "../libs/BoardUtil.js";
+import { newBoard, swap, emulateMove, cloneBoard } from "../libs/BoardUtil.js";
 import { Drop } from "../libs/Drops.js";
 import Pattern from "../libs/Pattern.js";
 import { EmptyPos, Pos } from "../libs/Position.js";
@@ -72,6 +72,9 @@ class PADBoard extends HTMLElement {
       size: {
         value: 6,
       },
+      start: {
+        value: newBoard(6),
+      },
       board: {
         value: newBoard(6),
       },
@@ -112,13 +115,14 @@ class PADBoard extends HTMLElement {
     }
     this.#pointerId = e.pointerId;
     const pointerPos = this.#getPointerTile(e);
-    this.#states.updateStates({
+    const updates = {
       pointerDown: true,
       pointerPos
-    });
-    this.#drawGhost();
+    };
+    this.#states.updateStates(updates);
 
     if (this.#mode === "puzzle") {
+      this.#drawGhost();
       this.#moveGhost();
     }
   }
@@ -167,12 +171,16 @@ class PADBoard extends HTMLElement {
 
   #mode;
   set mode(value) {
+    const old = this.#mode;
     this.#mode = value;
+    if(old !== value){
+      this.#states.board = cloneBoard(this.#states.start);
+    }
   }
 
   modifyDrop(pos, func) {
-    const drop = this.#states.board[pos.y][pos.x];
-    func({ drop, board: this.#states.board });
+    const drop = this.#states.start[pos.y][pos.x];
+    func({ drop, board: this.#states.start });
     this.render();
   }
 
@@ -248,9 +256,10 @@ class PADBoard extends HTMLElement {
 
   #drawDrop(ctx) {
     const pos = this.#states.pointerPos;
+    const board = this.#states[this.#mode==="puzzle"?"board":"start"];
     this.#loopTile(({ top, left }) => {
       const hold = this.#mode === "puzzle" && pos.x === left && pos.y === top;
-      this.#states.board[top][left].draw(ctx, { size: this.#tileSize, x: left, y: top, hold, disables: this.#states.disables });
+      board[top][left].draw(ctx, { size: this.#tileSize, x: left, y: top, hold, disables: this.#states.disables });
     });
   }
 
@@ -290,10 +299,10 @@ class PADBoard extends HTMLElement {
   }
 
   clearBoard() {
-    this.#states.board = newBoard(this.#states.size, () => new Drop(-1));
+    this.#states.start = newBoard(this.#states.size, () => new Drop(-1));
   }
   random() {
-    this.#states.board = newBoard(this.#states.size, () => new Drop(Math.floor(Math.random() * 6)))
+    this.#states.start = newBoard(this.#states.size, () => new Drop(Math.floor(Math.random() * 6)))
   }
 }
 customElements.define("pad-board", PADBoard);
