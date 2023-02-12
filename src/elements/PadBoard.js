@@ -274,6 +274,7 @@ class PADBoard extends HTMLElement {
       const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
       const board = this.#states.board;
       const size = this.#states.size;
+      this.#animationLayer.innerHTML = "";
       for(const [comboId, posList] of comboPosList.entries()){
         console.log(posList);
         for(const pos of posList){
