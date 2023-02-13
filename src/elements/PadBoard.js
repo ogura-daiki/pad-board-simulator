@@ -222,7 +222,27 @@ class PADBoard extends HTMLElement {
       },
       disables: {
         value: new Set(),
-      }
+      },
+      fadeoutDuration:{
+        value:0.5,
+        hasChanged:(nv, ov) => {
+          return (
+            v1 !== ov
+            && typeof nv === "number"
+            && nv > 0.1 && nv < 5
+          );
+        }
+      },
+      fallDuration:{
+        value:0.5,
+        hasChanged:(nv, ov) => {
+          return (
+            v1 !== ov
+            && typeof nv === "number"
+            && nv > 0.1 && nv < 5
+          );
+        }
+      },
     }
   }
 
@@ -271,35 +291,7 @@ class PADBoard extends HTMLElement {
       return;
     }
     if(this.#mode === "puzzle"){
-      const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
-      const board = this.#states.board;
-      const size = this.#states.size;
-      this.#animationLayer.innerHTML = "";
-      for(const [comboId, posList] of comboPosList.entries()){
-        console.log(posList);
-        for(const pos of posList){
-          const drop = board[pos.y][pos.x];
-          if(drop.id === -1) continue;
-
-          const fadeoutDuration = 1;
-
-          const img = document.createElement("img");
-          drop.createGhost(img);
-          Object.assign(img.style, {
-            position:"absolute",
-            display:"block",
-            left:(100/size * pos.x)+"%",
-            top:(100/(size-1) * pos.y)+"%",
-            width:(100/size)+"%",
-            height:(100/(size-1))+"%",
-            animation:`${fadeoutDuration}s fadeout both`,
-            "animation-delay":`${(comboId-1)*fadeoutDuration}s`,
-          });
-          this.#animationLayer.append(img);
-
-          drop.id = -1;
-        }
-      }
+      this.#onPuzzleFinished();
     }
     this.#pointerId = null;
     this.#states.updateStates({
@@ -307,6 +299,122 @@ class PADBoard extends HTMLElement {
       pointerPos: EmptyPos(),
     });
     this.#moveGhost();
+  }
+
+  #createAnimDrop(drop, pos, anim){
+    const size = this.#states.size;
+    const img = document.createElement("img");
+    drop.createGhost(img);
+    Object.assign(img.style, {
+      position:"absolute",
+      display:"block",
+      left:(100/size * pos.x)+"%",
+      top:(100/(size-1) * pos.y)+"%",
+      width:(100/size)+"%",
+      height:(100/(size-1))+"%",
+      ...anim,
+    });
+
+    return img;
+  }
+
+  #deleteAllAnimObj(){
+    while(this.#animationLayer.firstChild){
+      this.#animationLayer.firstChild.remove();
+    }
+  }
+
+  async #animDeleteDrop(){
+    //console.log("animstart");
+    const board = this.#states.board;
+    const size = this.#states.size;
+    const fadeoutDuration = this.#states.fadeoutDuration;
+    
+    const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
+
+    this.#deleteAllAnimObj();
+    await new Promise(r=>requestAnimationFrame(()=>r()));
+    //await new Promise(r=>requestAnimationFrame(()=>r()));
+    
+    for(const [comboId, posList] of comboPosList.entries()){
+      for(const pos of posList){
+        const drop = board[pos.y][pos.x];
+        if(drop.id === -1) continue;
+
+        const img = this.#createAnimDrop(drop, pos, {
+          animation:`${fadeoutDuration}s fadeout both`,
+          "animation-delay":`${(comboId-1)*fadeoutDuration}s`,
+        });
+        this.#animationLayer.append(img);
+
+        drop.id = -1;
+      }
+    }
+    this.render();
+    await new Promise(r=>setTimeout(()=>r(), count*fadeoutDuration*1000));
+    //console.log("animend");
+    return count;
+  }
+
+  async #animFallDrop(){
+    const original = cloneBoard(this.#states.board);
+    const board = original.map(row=>row.map(drop=>drop));
+    const fallDuration = this.#states.fallDuration;
+
+    const size = this.#states.size;
+    for(let y=board.length-1;y>0;y-=1){
+      for(let needleY=0;needleY<y;needleY+=1){
+        //console.log({y, needleY});
+        for(let x=0;x<board[0].length;x+=1){
+          if(board[needleY+1][x].id === -1 && board[needleY][x] !== -1){
+            board[needleY][x].fallY = needleY+1;
+            swap(board, Pos({x,y:needleY}), Pos({x,y:needleY+1}));
+          }
+        }
+      }
+    }
+    this.#states.board = newBoard(size, ()=>new Drop(-1));
+
+    this.#deleteAllAnimObj();
+    await new Promise(r=>requestAnimationFrame(()=>r()));
+
+    const list = [];
+    this.#loopTile(({top:y, left:x})=>{
+      const drop = original[y][x];
+      if(drop.id === -1){
+        return;
+      }
+
+      const img = this.#createAnimDrop(drop, Pos({x,y}), {
+        transition:`top ${fallDuration}s`,
+      });
+      this.#animationLayer.append(img);
+      list.push([drop, img, y]);
+    });
+
+    await new Promise(r=>requestAnimationFrame(()=>r()));
+    
+    for(const [drop, img, originY] of list){
+      img.style.top = `${100/(size-1) * ((drop.fallY??originY))}%`;
+    }
+
+    await new Promise(r=>setTimeout(()=>r(), fallDuration * 1000));
+    this.#states.board = board;
+    await new Promise(r=>requestAnimationFrame(()=>r()));
+    return;
+  }
+
+  async #onPuzzleFinished(){
+    let allCount = 0;
+    while (true){
+      const count = await this.#animDeleteDrop();
+      allCount+=count;
+      if(count <= 0){
+        break;
+      }
+      await this.#animFallDrop();
+    }
+    console.log(allCount);
   }
 
   constructor() {
