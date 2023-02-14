@@ -106,7 +106,7 @@ const countCombo = (size, board, disables) => {
       }
       //縦方向
       if(y-1>=0){
-        checkAndSetCombo(Pos({y,x}), Pos({y:y-1}));
+        checkAndSetCombo(Pos({y,x}), Pos({x,y:y-1}));
       }
     }
   }
