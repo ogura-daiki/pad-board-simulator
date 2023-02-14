@@ -131,6 +131,9 @@ const loopTile = (size, callback) => {
   }
 }
 
+const sleep = time => new Promise(r=>setTimeout(()=>r(), time));
+const waitAnim = ()=>new Promise(r=>requestAnimationFrame(()=>r()));
+
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
 class PADBoard extends HTMLElement {
@@ -344,7 +347,7 @@ class PADBoard extends HTMLElement {
     const {count, comboList} = countCombo(this.#states.size, this.#states.board, this.#states.disables);
 
     this.#deleteAllAnimObj();
-    await new Promise(r=>requestAnimationFrame(()=>r()));
+    //await new Promise(r=>requestAnimationFrame(()=>r()));
     //await new Promise(r=>requestAnimationFrame(()=>r()));
     
     for(const [comboId, posList] of comboList.entries()){
@@ -362,7 +365,7 @@ class PADBoard extends HTMLElement {
       }
     }
     this.render();
-    await new Promise(r=>setTimeout(()=>r(), count*fadeoutDuration*1000));
+    await sleep(count*fadeoutDuration*1000);
     //console.log("animend");
     return count;
   }
@@ -385,9 +388,9 @@ class PADBoard extends HTMLElement {
       }
     }
     this.#states.board = newBoard(size, ()=>new Drop(-1));
+    await waitAnim();
 
     this.#deleteAllAnimObj();
-    await new Promise(r=>requestAnimationFrame(()=>r()));
 
     const list = [];
     loopTile(this.#states.size, ({y, x})=>{
@@ -403,15 +406,15 @@ class PADBoard extends HTMLElement {
       list.push([drop, img, y]);
     });
 
-    await new Promise(r=>requestAnimationFrame(()=>r()));
+    await waitAnim();
     
     for(const [drop, img, originY] of list){
       img.style.top = `${100/(size-1) * ((drop.fallY??originY))}%`;
     }
 
-    await new Promise(r=>setTimeout(()=>r(), fallDuration * 1000));
+    await sleep(fallDuration * 1000);
     this.#states.board = board;
-    await new Promise(r=>requestAnimationFrame(()=>r()));
+    await waitAnim();
     return;
   }
 
@@ -425,6 +428,7 @@ class PADBoard extends HTMLElement {
       }
       await this.#animFallDrop();
     }
+    this.#deleteAllAnimObj();
     console.log(allCount);
   }
 
