@@ -82,27 +82,29 @@ const countCombo = (size, board, disables) => {
     }
   }
 
+  const checkAndSetCombo = (p1, p2) => {
+    //どちらかがコンボではない場合
+    if([p1, p2].some(p=>!comboCheck[p.y][p.x])){
+      return;
+    }
+    //別ドロップのとき
+    if(board[p1.y][p1.x].id !== board[p2.y][p2.x].id){
+      return;
+    }
+    const comboId = makeComboId(...[p1, p2].map(p=>comboCounter[p.y][p.x]));
+    setCombo(comboId, [p1, p2]);
+  }
+
   const endX = comboCheck[0].length;
   for(let y=comboCheck.length-1;y>=0;y-=1){
     for(let x=0;x<endX;x+=1){
-      const isCombo = comboCheck[y][x];
-      if(!isCombo){
-        continue;
-      }
-
       //横方向
       if(x+1<endX){
-        if(board[y][x].id === board[y][x+1].id && comboCheck[y][x+1]){
-          const comboId = makeComboId(comboCounter[y][x], comboCounter[y][x+1]);
-          setCombo(comboId, [Pos({y,x}), Pos({y,x:x+1})]);
-        }
+        checkAndSetCombo(Pos({y,x}), Pos({y,x:x+1}));
       }
       //縦方向
       if(y-1>=0){
-        if(board[y][x].id === board[y-1][x].id && comboCheck[y-1][x]){
-          const comboId = makeComboId(comboCounter[y][x], comboCounter[y-1][x]);
-          setCombo(comboId, [Pos({y,x}), Pos({y:y-1,x})]);
-        }
+        checkAndSetCombo(Pos({y,x}), Pos({y:y-1}));
       }
     }
   }
