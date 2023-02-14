@@ -7,6 +7,8 @@ import { clamp } from "../libs/Util.js";
 
 const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
 
+const getPosValue = (board, {x, y}) => board[y][x];
+
 const countCombo = (size, board, disables) => {
   disables = new Set(disables);
   disables.add(-1);
@@ -16,7 +18,7 @@ const countCombo = (size, board, disables) => {
   const comboCheck = board.map(row=>row.map(()=>false));
 
   loopTile(size, ({y, x})=>{
-    const drop = board[y][x];
+    const drop = getPosValue(board, {y,x});
 
     //消せないドロップは除外
     if(disables.has(drop.id)){
@@ -27,7 +29,7 @@ const countCombo = (size, board, disables) => {
     const xEnd = x+minCount-1;
     if(xEnd<board[0].length){
       const xRange = range(x, xEnd);
-      const isXCombo = xRange.every(xNeedle => board[y][xNeedle].id === drop.id);
+      const isXCombo = xRange.every(xNeedle => getPosValue(board, {y, x:xNeedle}).id === drop.id);
       if(isXCombo){
         xRange.forEach(xNeedle => comboCheck[y][xNeedle] = true);
       }
@@ -37,7 +39,7 @@ const countCombo = (size, board, disables) => {
     const yEnd = y-minCount+1;
     if(yEnd>=0){
       const yRange = range(yEnd, y);
-      const isYCombo = yRange.every(yNeedle => board[yNeedle][x].id === drop.id);
+      const isYCombo = yRange.every(yNeedle => getPosValue(board, {y:yNeedle, x}).id === drop.id);
       if(isYCombo){
         yRange.forEach(yNeedle => comboCheck[yNeedle][x] = true);
       }
@@ -84,14 +86,14 @@ const countCombo = (size, board, disables) => {
 
   const checkAndSetCombo = (p1, p2) => {
     //どちらかがコンボではない場合
-    if([p1, p2].some(p=>!comboCheck[p.y][p.x])){
+    if([p1, p2].some(p=>!getPosValue(comboCheck, p))){
       return;
     }
     //別ドロップのとき
-    if(board[p1.y][p1.x].id !== board[p2.y][p2.x].id){
+    if(getPosValue(board, p1).id !== getPosValue(board, p2).id){
       return;
     }
-    const comboId = makeComboId(...[p1, p2].map(p=>comboCounter[p.y][p.x]));
+    const comboId = makeComboId(...[p1, p2].map(p=>getPosValue(comboCounter, p)));
     setCombo(comboId, [p1, p2]);
   }
 
@@ -347,7 +349,7 @@ class PADBoard extends HTMLElement {
     
     for(const [comboId, posList] of comboList.entries()){
       for(const pos of posList){
-        const drop = board[pos.y][pos.x];
+        const drop = getPosValue(board, pos);
         if(drop.id === -1) continue;
 
         const img = this.#createAnimDrop(drop, pos, {
@@ -375,8 +377,8 @@ class PADBoard extends HTMLElement {
       for(let needleY=0;needleY<y;needleY+=1){
         //console.log({y, needleY});
         for(let x=0;x<board[0].length;x+=1){
-          if(board[needleY+1][x].id === -1 && board[needleY][x] !== -1){
-            board[needleY][x].fallY = needleY+1;
+          if(getPosValue(board, {x, y:needleY+1}).id === -1 && getPosValue(board, {x, y:needleY}) !== -1){
+            getPosValue(board, {x, y:needleY}).fallY = needleY+1;
             swap(board, Pos({x,y:needleY}), Pos({x,y:needleY+1}));
           }
         }
@@ -389,7 +391,7 @@ class PADBoard extends HTMLElement {
 
     const list = [];
     loopTile(this.#states.size, ({y, x})=>{
-      const drop = original[y][x];
+      const drop = getPosValue(original, {x,y});
       if(drop.id === -1){
         return;
       }
@@ -527,9 +529,9 @@ class PADBoard extends HTMLElement {
   #drawDrop(ctx) {
     const pos = this.#states.pointerPos;
     const board = this.#states[this.#mode==="puzzle"?"board":"start"];
-    loopTile(this.#states.size, ({ top, left }) => {
-      const hold = this.#mode === "puzzle" && pos.x === left && pos.y === top;
-      board[top][left].draw(ctx, { size: this.#tileSize, x: left, y: top, hold, disables: this.#states.disables });
+    loopTile(this.#states.size, ({ x, y }) => {
+      const hold = this.#mode === "puzzle" && pos.x === x && pos.y === y;
+      getPosValue(board, {x,y}).draw(ctx, { size: this.#tileSize, x, y, hold, disables: this.#states.disables });
     });
   }
 
@@ -543,7 +545,7 @@ class PADBoard extends HTMLElement {
     const pos = this.#states.pointerPos;
     if (!pos.empty) {
       Object.assign(this.#ghost.style, sizes);
-      const drop = this.#states.board[pos.y][pos.x];
+      const drop = getPosValue(this.#states.board, pos);
       drop.createGhost(this.#ghost);
     }
   }
