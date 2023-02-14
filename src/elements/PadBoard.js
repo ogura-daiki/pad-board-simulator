@@ -7,43 +7,43 @@ import { clamp } from "../libs/Util.js";
 
 const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
 
-const countCombo = (board, disables) => {
+const countCombo = (size, board, disables) => {
   disables = new Set(disables);
   disables.add(-1);
   const minCount = 3;
 
   //コンボ発生をチェック
   const comboCheck = board.map(row=>row.map(()=>false));
-  for(let y=board.length-1;y>=0;y-=1){
-    for(let x=0;x<board[0].length;x+=1){
-      const drop = board[y][x];
 
-      //消せないドロップは除外
-      if(disables.has(drop.id)){
-        continue;
-      }
-      
-      //横方向
-      const xEnd = x+minCount-1;
-      if(xEnd<board[0].length){
-        const xRange = range(x, xEnd);
-        const isXCombo = xRange.every(xNeedle => board[y][xNeedle].id === drop.id);
-        if(isXCombo){
-          xRange.forEach(xNeedle => comboCheck[y][xNeedle] = true);
-        }
-      }
+  loopTile(size, ({y, x})=>{
+    const drop = board[y][x];
 
-      //縦方向
-      const yEnd = y-minCount+1;
-      if(yEnd>=0){
-        const yRange = range(yEnd, y);
-        const isYCombo = yRange.every(yNeedle => board[yNeedle][x].id === drop.id);
-        if(isYCombo){
-          yRange.forEach(yNeedle => comboCheck[yNeedle][x] = true);
-        }
+    //消せないドロップは除外
+    if(disables.has(drop.id)){
+      return;
+    }
+
+    //横方向
+    const xEnd = x+minCount-1;
+    if(xEnd<board[0].length){
+      const xRange = range(x, xEnd);
+      const isXCombo = xRange.every(xNeedle => board[y][xNeedle].id === drop.id);
+      if(isXCombo){
+        xRange.forEach(xNeedle => comboCheck[y][xNeedle] = true);
       }
     }
-  }
+
+    //縦方向
+    const yEnd = y-minCount+1;
+    if(yEnd>=0){
+      const yRange = range(yEnd, y);
+      const isYCombo = yRange.every(yNeedle => board[yNeedle][x].id === drop.id);
+      if(isYCombo){
+        yRange.forEach(yNeedle => comboCheck[yNeedle][x] = true);
+      }
+    }
+
+  });
 
   const noComboCount = 99999;
   //同一コンボをカウント
@@ -109,15 +109,14 @@ const countCombo = (board, disables) => {
 
 
   const comboCount = [...comboPosList.keys()].length;
-  [...comboPosList.keys()].sort().forEach((oldKey, index)=>{
+  const comboList = new Map();
+  [...comboPosList.keys()].sort((a,b)=>a-b).forEach((oldKey, index)=>{
     const newKey = index+1;
-    if(oldKey !== newKey){
-      comboPosList.set(newKey, comboPosList.get(oldKey));
-      comboPosList.delete(oldKey);
-    }
+    console.log({oldKey, newKey})
+    comboList.set(newKey, comboPosList.get(oldKey));
   });
 
-  return {count:comboCount, comboPosList};
+  return {count:comboCount, comboList};
 }
 
 const loopTile = (size, callback) => {
@@ -338,13 +337,13 @@ class PADBoard extends HTMLElement {
     const size = this.#states.size;
     const fadeoutDuration = this.#states.fadeoutDuration;
     
-    const {count, comboPosList} = countCombo(this.#states.board, this.#states.disables);
+    const {count, comboList} = countCombo(this.#states.size, this.#states.board, this.#states.disables);
 
     this.#deleteAllAnimObj();
     await new Promise(r=>requestAnimationFrame(()=>r()));
     //await new Promise(r=>requestAnimationFrame(()=>r()));
     
-    for(const [comboId, posList] of comboPosList.entries()){
+    for(const [comboId, posList] of comboList.entries()){
       for(const pos of posList){
         const drop = board[pos.y][pos.x];
         if(drop.id === -1) continue;
