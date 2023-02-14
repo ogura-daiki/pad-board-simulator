@@ -376,17 +376,14 @@ class PADBoard extends HTMLElement {
     const fallDuration = this.#states.fallDuration;
 
     const size = this.#states.size;
-    for(let y=board.length-1;y>0;y-=1){
-      for(let needleY=0;needleY<y;needleY+=1){
-        //console.log({y, needleY});
-        for(let x=0;x<board[0].length;x+=1){
-          if(getPosValue(board, {x, y:needleY+1}).id === -1 && getPosValue(board, {x, y:needleY}) !== -1){
-            getPosValue(board, {x, y:needleY}).fallY = needleY+1;
-            swap(board, Pos({x,y:needleY}), Pos({x,y:needleY+1}));
-          }
+    loopTile(this.#states.size, ({y,x})=>{
+      for(let needleY=this.#states.size-2;needleY>y;needleY-=1){
+        if(getPosValue(board, {x,y:needleY}).id === -1 && getPosValue(board, {x, y:needleY-1}) !== -1){
+          getPosValue(board, {x, y:needleY-1}).fallY = needleY;
+          swap(board, Pos({x,y:needleY}), Pos({x,y:needleY-1}));
         }
       }
-    }
+    });
     this.#states.board = newBoard(size, ()=>new Drop(-1));
     await waitAnim();
 
