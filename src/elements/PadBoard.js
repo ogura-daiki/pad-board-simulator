@@ -27,7 +27,7 @@ const countCombo = (size, board, disables) => {
 
     //横方向
     const xEnd = x+minCount-1;
-    if(xEnd<board[0].length){
+    if(xEnd<size){
       const xRange = range(x, xEnd);
       const isXCombo = xRange.every(xNeedle => getPosValue(board, {y, x:xNeedle}).id === drop.id);
       if(isXCombo){
@@ -97,11 +97,10 @@ const countCombo = (size, board, disables) => {
     setCombo(comboId, [p1, p2]);
   }
 
-  const endX = comboCheck[0].length;
-  for(let y=comboCheck.length-1;y>=0;y-=1){
-    for(let x=0;x<endX;x+=1){
+  for(let y=size-2;y>=0;y-=1){
+    for(let x=0;x<size;x+=1){
       //横方向
-      if(x+1<endX){
+      if(x+1<size){
         checkAndSetCombo(Pos({y,x}), Pos({y,x:x+1}));
       }
       //縦方向
