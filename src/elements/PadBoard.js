@@ -173,6 +173,11 @@ class PADBoard extends HTMLElement {
       from{opacity:1}
       to{opacity:0}
     }
+
+    .animDrop{
+      position:absolute;
+      display:block;
+    }
     `;
   }
 
@@ -322,10 +327,9 @@ class PADBoard extends HTMLElement {
   #createAnimDrop(drop, pos, anim){
     const size = this.#states.size;
     const img = document.createElement("img");
+    img.className = "animDrop";
     drop.createGhost(img);
     Object.assign(img.style, {
-      position:"absolute",
-      display:"block",
       left:(100/size * pos.x)+"%",
       top:(100/(size-1) * pos.y)+"%",
       width:(100/size)+"%",
