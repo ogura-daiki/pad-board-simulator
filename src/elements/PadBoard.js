@@ -120,6 +120,14 @@ const countCombo = (board, disables) => {
   return {count:comboCount, comboPosList};
 }
 
+const loopTile = (size, callback) => {
+  for (let top = 0; top < size - 1; top += 1) {
+    for (let left = 0; left < size; left += 1) {
+      callback({ top, y:top, left, x:left });
+    }
+  }
+}
+
 const bgColor = ['rgb(40, 20, 0)', 'rgb(60, 40, 0)'];
 
 class PADBoard extends HTMLElement {
@@ -379,7 +387,7 @@ class PADBoard extends HTMLElement {
     await new Promise(r=>requestAnimationFrame(()=>r()));
 
     const list = [];
-    this.#loopTile(({top:y, left:x})=>{
+    loopTile(this.#states.size, ({y, x})=>{
       const drop = original[y][x];
       if(drop.id === -1){
         return;
@@ -502,22 +510,13 @@ class PADBoard extends HTMLElement {
     return this.#states.size;
   }
 
-  #loopTile(callback) {
-    const size = this.#states.size;
-    for (let top = 0; top < size - 1; top += 1) {
-      for (let left = 0; left < size; left += 1) {
-        callback({ top, left });
-      }
-    }
-  }
-
   #drawBG(ctx) {
     const size = this.#states.size;
     ctx.fillStyle = bgColor[0];
     ctx.fillRect(0, 0, size * this.#tileSize, size * this.#tileSize);
 
     ctx.fillStyle = bgColor[1];
-    this.#loopTile(({ top, left }) => {
+    loopTile(this.#states.size, ({ top, left }) => {
       if ((left + top) % 2) {
         ctx.fillRect(left * this.#tileSize, top * this.#tileSize, this.#tileSize, this.#tileSize);
       }
@@ -527,7 +526,7 @@ class PADBoard extends HTMLElement {
   #drawDrop(ctx) {
     const pos = this.#states.pointerPos;
     const board = this.#states[this.#mode==="puzzle"?"board":"start"];
-    this.#loopTile(({ top, left }) => {
+    loopTile(this.#states.size, ({ top, left }) => {
       const hold = this.#mode === "puzzle" && pos.x === left && pos.y === top;
       board[top][left].draw(ctx, { size: this.#tileSize, x: left, y: top, hold, disables: this.#states.disables });
     });
