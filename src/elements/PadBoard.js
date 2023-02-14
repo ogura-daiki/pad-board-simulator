@@ -194,6 +194,7 @@ class PADBoard extends HTMLElement {
     ));
   }
 
+  #moved=false;
   onPointerMoved(nv, ov) {
     if(nv.empty){
       return;
@@ -204,7 +205,10 @@ class PADBoard extends HTMLElement {
 
     new Pattern({
       palette:()=>this.dispatchDropPush(nv),
-      puzzle:()=>swap(this.#states.board, ov, nv),
+      puzzle:()=>{
+        this.#moved = true;
+        swap(this.#states.board, ov, nv);
+      },
     }).do(this.#mode);
 
   }
@@ -303,9 +307,10 @@ class PADBoard extends HTMLElement {
     if (e.pointerId !== this.#pointerId) {
       return;
     }
-    if(this.#mode === "puzzle"){
+    if(this.#mode === "puzzle" && this.#moved){
       this.#onPuzzleFinished();
     }
+    this.#moved = false;
     this.#pointerId = null;
     this.#states.updateStates({
       pointerDown: false,
@@ -346,8 +351,6 @@ class PADBoard extends HTMLElement {
     const {count, comboList} = countCombo(this.#states.size, this.#states.board, this.#states.disables);
 
     this.#deleteAllAnimObj();
-    //await new Promise(r=>requestAnimationFrame(()=>r()));
-    //await new Promise(r=>requestAnimationFrame(()=>r()));
     
     for(const [comboId, posList] of comboList.entries()){
       for(const pos of posList){
