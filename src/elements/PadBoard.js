@@ -527,6 +527,10 @@ class PADBoard extends HTMLElement {
     return this.#states.size;
   }
 
+  restoreBoardToStart(){
+    this.#states.board = cloneBoard(this.#states.start);
+  }
+
   #drawBG(ctx) {
     const size = this.#states.size;
     ctx.fillStyle = bgColor[0];

@@ -173,6 +173,10 @@ class App extends LitElement{
   _puzzle(){
     return html`
       操作時間：<input type=number min=0 max=120 step=1>
+      <button @click=${e=>{
+        const padBoard = this.renderRoot.querySelector("#padBoard");
+        padBoard.restoreBoardToStart();
+      }}>パズル前に戻す</button>
     `;
   }
   #option(name, content){
