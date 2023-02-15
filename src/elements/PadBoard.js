@@ -513,6 +513,10 @@ class PADBoard extends HTMLElement {
     this.#canvas.width = size * this.#tileSize;
     this.#canvas.height = (size - 1) * this.#tileSize;
     const start = newBoard(size);
+    //古い盤面をコピー
+    loopTile(Math.min(size, this.#states.size), ({x,y})=>{
+      start[y][x] = this.#states.start[y][x];
+    });
     this.#states.updateStates({
       size,
       start
