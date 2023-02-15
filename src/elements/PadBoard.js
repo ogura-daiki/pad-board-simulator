@@ -245,7 +245,7 @@ class PADBoard extends HTMLElement {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(hasChange){
             emulateMove(ov, nv, (nv, ov)=>this.onPointerMoved(nv, ov));
-            if(this.#mode === "puzzle"){
+            if(!nv.empty && !ov.empty && this.#mode === "puzzle"){
               sounds.move.play();
             }
           }
