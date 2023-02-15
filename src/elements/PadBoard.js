@@ -455,6 +455,7 @@ class PADBoard extends HTMLElement {
     this.#canvas.addEventListener("pointerdown", e=>this.#onPointerDown(e));
     window.addEventListener("pointermove", e=>this.#onPointerMove(e));
     window.addEventListener("pointerup", e=>this.#onPointerUp(e));
+    window.addEventListener("pointercancel", e=>this.#onPointerUp(e));
 
     //ポインターイベントが途中でキャンセルされることを防ぐ
     this.#canvas.addEventListener("touchmove", e=>e.preventDefault());
