@@ -517,10 +517,10 @@ class PADBoard extends HTMLElement {
   set size(size) {
     this.#canvas.width = size * this.#tileSize;
     this.#canvas.height = (size - 1) * this.#tileSize;
-    const board = newBoard(size);
+    const start = newBoard(size);
     this.#states.updateStates({
       size,
-      board
+      start
     });
   }
 
