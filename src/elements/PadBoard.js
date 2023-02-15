@@ -5,6 +5,13 @@ import { EmptyPos, Pos, Position } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 import { clamp } from "../libs/Util.js";
 
+const sounds = {
+  move: new Howl({
+    preload:true,
+    src: [`${rootPath}/src/sounds/move.mp3`],
+  }),
+};
+
 const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
 
 const getPosValue = (board, {x, y}) => board[y][x];
@@ -211,6 +218,7 @@ class PADBoard extends HTMLElement {
     new Pattern({
       palette:()=>this.dispatchDropPush(nv),
       puzzle:()=>{
+        sounds.move.play();
         this.#moved = true;
         swap(this.#states.board, ov, nv);
       },
