@@ -218,7 +218,6 @@ class PADBoard extends HTMLElement {
     new Pattern({
       palette:()=>this.dispatchDropPush(nv),
       puzzle:()=>{
-        sounds.move.play();
         this.#moved = true;
         swap(this.#states.board, ov, nv);
       },
@@ -246,6 +245,9 @@ class PADBoard extends HTMLElement {
           const hasChange = ["x", "y"].some(key => nv[key] !== ov[key]);
           if(hasChange){
             emulateMove(ov, nv, (nv, ov)=>this.onPointerMoved(nv, ov));
+            if(this.#mode === "puzzle"){
+              sounds.move.play();
+            }
           }
           return hasChange;
         },
