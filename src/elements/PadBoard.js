@@ -509,11 +509,6 @@ class PADBoard extends HTMLElement {
     return Pos({ x, y });
   }
 
-  #start;
-  set start(board) {
-    this.#start = board;
-  }
-
   set size(size) {
     this.#canvas.width = size * this.#tileSize;
     this.#canvas.height = (size - 1) * this.#tileSize;
