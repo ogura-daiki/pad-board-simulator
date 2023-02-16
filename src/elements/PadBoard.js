@@ -5,12 +5,39 @@ import { EmptyPos, Pos, Position } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 import { clamp } from "../libs/Util.js";
 
-const sounds = {
-  move: new Howl({
-    preload:true,
-    src: [`${rootPath}/src/sounds/move.mp3`],
-  }),
-};
+const soundsFolder = `${rootPath}/src/sounds/`;
+const sounds = Object.entries({
+  move:"move.mp3",
+})
+.reduce((c, [name, fileName])=>{
+  c[name] = new Tone.Player().toDestination();
+  c[name].load(soundsFolder+fileName);
+  return c;
+}, {});
+await Tone.loaded();
+
+const playerCache = new Map();
+const generateComboSound = async (count) => {
+  if(playerCache.has(count)){
+    return playerCache.get(count);
+  }
+  const player = new Tone.Player();
+  player.load(soundsFolder+"combo.mp3");
+  await Tone.loaded();
+  
+  const pitch = count-1;
+  const shift = new Tone.PitchShift({
+    pitch,
+    windowSize  : 0.03,
+    delayTime  : 0,
+    feedback  : 0
+  }).toDestination();
+  player.fan(shift);
+  playerCache.set(count, player);
+  return player;
+}
+
+console.log(sounds)
 
 const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
 
@@ -246,7 +273,7 @@ class PADBoard extends HTMLElement {
           if(hasChange){
             emulateMove(ov, nv, (nv, ov)=>this.onPointerMoved(nv, ov));
             if(!nv.empty && !ov.empty && this.#mode === "puzzle"){
-              sounds.move.play();
+              sounds.move.start();
             }
           }
           return hasChange;
@@ -356,7 +383,7 @@ class PADBoard extends HTMLElement {
     }
   }
 
-  async #animDeleteDrop(){
+  async #animDeleteDrop(comboCountStart = 0){
     //console.log("animstart");
     const board = this.#states.board;
     const size = this.#states.size;
@@ -381,7 +408,15 @@ class PADBoard extends HTMLElement {
       }
     }
     this.render();
-    await sleep(count*fadeoutDuration*1000);
+    let countUpCombo = 1;
+    while(countUpCombo <= count){
+      const currentCombo = countUpCombo+comboCountStart;
+      const comboSound = await generateComboSound(currentCombo);
+      comboSound.start();
+      countUpCombo+=1;
+      await sleep(fadeoutDuration*1000);
+    }
+    //await sleep(count*fadeoutDuration*1000);
     //console.log("animend");
     return count;
   }
