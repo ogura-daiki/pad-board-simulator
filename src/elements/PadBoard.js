@@ -469,7 +469,7 @@ class PADBoard extends HTMLElement {
   async #onPuzzleFinished(){
     let allCount = 0;
     while (true){
-      const count = await this.#animDeleteDrop();
+      const count = await this.#animDeleteDrop(allCount);
       allCount+=count;
       if(count <= 0){
         break;
