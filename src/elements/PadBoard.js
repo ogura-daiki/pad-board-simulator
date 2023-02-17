@@ -30,7 +30,7 @@ const generateComboSound = async (count) => {
   const pitch = count-1;
   const shift = new Tone.PitchShift({
     pitch,
-    windowSize  : 0.03,
+    windowSize  : 0.1,
     delayTime  : 0,
     feedback  : 0
   }).toDestination();
