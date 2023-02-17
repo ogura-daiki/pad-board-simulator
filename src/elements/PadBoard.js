@@ -5,6 +5,8 @@ import { EmptyPos, Pos, Position } from "../libs/Position.js";
 import ReactiveStates from "../libs/ReactiveStates.js";
 import { clamp } from "../libs/Util.js";
 
+const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
+
 const soundsFolder = `${rootPath}/src/sounds/`;
 const sounds = Object.entries({
   move:"move.mp3",
@@ -36,10 +38,10 @@ const generateComboSound = async (count) => {
   playerCache.set(count, player);
   return player;
 }
+range(1,14).forEach(combo => generateComboSound(combo));
 
 console.log(sounds)
 
-const range = (start, end) => [...Array(end-start+1)].map((_,i)=>i+start);
 
 const getPosValue = (board, {x, y}) => board[y][x];
 
